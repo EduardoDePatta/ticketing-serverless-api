@@ -1,367 +1,367 @@
 {
-    "info": {
-        "name": "Ticketing Serverless API",
-        "description": "Import this file in Postman: File → Import → select this JSON.\nSet collection variables `baseUrl`, `eventId` (after POST /events) and `orderId` (after POST /orders).\n\nResponse envelope (JSON body): success uses `{ \"status\", \"message\", \"data\" }` (numeric status matches HTTP code; `data` may be null). Errors use the same fields plus `traceId` (API Gateway request id); validation errors put `{ \"errors\": { \"field\": \"msg\" } }` in `data` when applicable.\n\nAuth: register a CUSTOMER or ORGANIZER, then login to populate `accessToken` and `refreshToken` collection variables (the Login/Refresh requests have Tests scripts that do this automatically). Authenticated requests should send `Authorization: Bearer {{accessToken}}`.\n\nIdempotency: `POST /orders` and `POST /orders/{id}/pay` REQUIRE an `Idempotency-Key` header (any UUID). The same key + same payload returns the cached response; the same key with a different payload returns 422.\n\nPayment simulator (test cards):\n- Any Luhn-valid card other than the magic ones below succeeds.\n- 4000 0000 0000 0002 → 402 declined (`card_declined`)\n- 4000 0000 0000 0119 → 402 processing error\n\nNo real charges occur; the simulator does not call any external network.",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  "info": {
+    "name": "Ticketing Serverless API",
+    "description": "Import this file in Postman: File → Import → select this JSON.\nSet collection variables `baseUrl`, `eventId` (after POST /events) and `orderId` (after POST /orders).\n\nResponse envelope (JSON body): success uses `{ \"status\", \"message\", \"data\" }` (numeric status matches HTTP code; `data` may be null). Errors use the same fields plus `traceId` (API Gateway request id); validation errors put `{ \"errors\": { \"field\": \"msg\" } }` in `data` when applicable.\n\nAuth: register a CUSTOMER or ORGANIZER, then login to populate `accessToken` and `refreshToken` collection variables (the Login/Refresh requests have Tests scripts that do this automatically). Authenticated requests should send `Authorization: Bearer {{accessToken}}`.\n\nIdempotency: `POST /orders` and `POST /orders/{id}/pay` REQUIRE an `Idempotency-Key` header (any UUID). The same key + same payload returns the cached response; the same key with a different payload returns 422.\n\nPayment simulator (test cards):\n- Any Luhn-valid card other than the magic ones below succeeds.\n- 4000 0000 0000 0002 → 402 declined (`card_declined`)\n- 4000 0000 0000 0119 → 402 processing error\n\nNo real charges occur; the simulator does not call any external network.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://r8gjlndh1e.execute-api.us-east-1.amazonaws.com"
     },
-    "variable": [
+    {
+      "key": "eventId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "idempotencyKeyCreate",
+      "value": ""
+    },
+    {
+      "key": "idempotencyKeyPay",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
         {
-            "key": "baseUrl",
-            "value": "https://r8gjlndh1e.execute-api.us-east-1.amazonaws.com"
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Sup3rL0ngPassword!\",\n  \"name\": \"Alice\",\n  \"role\": \"CUSTOMER\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
         },
         {
-            "key": "eventId",
-            "value": ""
-        },
-        {
-            "key": "orderId",
-            "value": ""
-        },
-        {
-            "key": "idempotencyKeyCreate",
-            "value": ""
-        },
-        {
-            "key": "idempotencyKeyPay",
-            "value": ""
-        },
-        {
-            "key": "accessToken",
-            "value": ""
-        },
-        {
-            "key": "refreshToken",
-            "value": ""
-        }
-    ],
-    "item": [
-        {
-            "name": "Health",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": "{{baseUrl}}/health"
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.data) {",
+                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  }",
+                  "}"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Sup3rL0ngPassword!\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
         },
         {
-            "name": "Auth",
-            "item": [
-                {
-                    "name": "Register",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Sup3rL0ngPassword!\",\n  \"name\": \"Alice\",\n  \"role\": \"CUSTOMER\"\n}"
-                        },
-                        "url": "{{baseUrl}}/auth/register"
-                    }
-                },
-                {
-                    "name": "Login",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "  const json = pm.response.json();",
-                                    "  if (json && json.data) {",
-                                    "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
-                                    "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                                    "  }",
-                                    "}"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Sup3rL0ngPassword!\"\n}"
-                        },
-                        "url": "{{baseUrl}}/auth/login"
-                    }
-                },
-                {
-                    "name": "Refresh",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "if (pm.response.code === 200) {",
-                                    "  const json = pm.response.json();",
-                                    "  if (json && json.data) {",
-                                    "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
-                                    "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                                    "  }",
-                                    "}"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                        },
-                        "url": "{{baseUrl}}/auth/refresh"
-                    }
-                },
-                {
-                    "name": "Logout",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                        },
-                        "url": "{{baseUrl}}/auth/logout"
-                    }
-                },
-                {
-                    "name": "Me",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            }
-                        ],
-                        "url": "{{baseUrl}}/auth/me"
-                    }
-                }
-            ]
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.data) {",
+                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/refresh"
+          }
         },
         {
-            "name": "Events",
-            "item": [
-                {
-                    "name": "Create event (ORGANIZER)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "if (pm.response.code === 201) {",
-                                    "  const json = pm.response.json();",
-                                    "  if (json && json.data && json.data.id) {",
-                                    "    pm.collectionVariables.set('eventId', json.data.id);",
-                                    "  }",
-                                    "}"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"name\": \"Show de teste\",\n  \"description\": \"Opcional\",\n  \"date\": \"2026-06-15T20:00:00.000Z\",\n  \"location\": \"Lisboa\",\n  \"priceInCents\": 2500,\n  \"availableTickets\": 100,\n  \"currency\": \"EUR\"\n}"
-                        },
-                        "url": "{{baseUrl}}/events"
-                    }
-                },
-                {
-                    "name": "List events (public)",
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": "{{baseUrl}}/events"
-                    }
-                },
-                {
-                    "name": "Get event by id (public)",
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": "{{baseUrl}}/events/{{eventId}}"
-                    }
-                },
-                {
-                    "name": "Update event (ORGANIZER, owner only)",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"name\": \"Show atualizado\",\n  \"availableTickets\": 80\n}"
-                        },
-                        "url": "{{baseUrl}}/events/{{eventId}}"
-                    }
-                },
-                {
-                    "name": "Delete event (ORGANIZER, owner only)",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            }
-                        ],
-                        "url": "{{baseUrl}}/events/{{eventId}}"
-                    }
-                }
-            ]
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/logout"
+          }
         },
         {
-            "name": "Orders",
-            "item": [
-                {
-                    "name": "Create order (CUSTOMER, idempotent)",
-                    "event": [
-                        {
-                            "listen": "prerequest",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "if (!pm.collectionVariables.get('idempotencyKeyCreate') || pm.variables.get('rotateKey') === 'true') {",
-                                    "  pm.collectionVariables.set('idempotencyKeyCreate', require('uuid').v4());",
-                                    "}"
-                                ]
-                            }
-                        },
-                        {
-                            "listen": "test",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "if (pm.response.code === 201) {",
-                                    "  const json = pm.response.json();",
-                                    "  if (json && json.data && json.data.id) {",
-                                    "    pm.collectionVariables.set('orderId', json.data.id);",
-                                    "  }",
-                                    "}"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            },
-                            {
-                                "key": "Idempotency-Key",
-                                "value": "{{idempotencyKeyCreate}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"quantity\": 2\n}"
-                        },
-                        "url": "{{baseUrl}}/orders"
-                    }
-                },
-                {
-                    "name": "Get order by id (CUSTOMER, owner only)",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            }
-                        ],
-                        "url": "{{baseUrl}}/orders/{{orderId}}"
-                    }
-                },
-                {
-                    "name": "Pay order (CUSTOMER, idempotent, simulator)",
-                    "event": [
-                        {
-                            "listen": "prerequest",
-                            "script": {
-                                "type": "text/javascript",
-                                "exec": [
-                                    "if (!pm.collectionVariables.get('idempotencyKeyPay') || pm.variables.get('rotateKey') === 'true') {",
-                                    "  pm.collectionVariables.set('idempotencyKeyPay', require('uuid').v4());",
-                                    "}"
-                                ]
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{accessToken}}"
-                            },
-                            {
-                                "key": "Idempotency-Key",
-                                "value": "{{idempotencyKeyPay}}"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n  \"card\": {\n    \"number\": \"4242 4242 4242 4242\",\n    \"holderName\": \"Alice Example\",\n    \"expiryMonth\": 12,\n    \"expiryYear\": 2030,\n    \"cvv\": \"123\"\n  },\n  \"billingAddress\": {\n    \"line1\": \"Rua Augusta 100\",\n    \"city\": \"Lisboa\",\n    \"state\": \"Lisboa\",\n    \"postalCode\": \"1100-053\",\n    \"country\": \"PT\"\n  }\n}"
-                        },
-                        "url": "{{baseUrl}}/orders/{{orderId}}/pay"
-                    }
-                }
-            ]
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/me"
+          }
         }
-    ]
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Create event (ORGANIZER)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('eventId', json.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Show de teste\",\n  \"description\": \"Opcional\",\n  \"date\": \"2026-06-15T20:00:00.000Z\",\n  \"location\": \"Lisboa\",\n  \"priceInCents\": 2500,\n  \"availableTickets\": 100,\n  \"currency\": \"EUR\"\n}"
+            },
+            "url": "{{baseUrl}}/events"
+          }
+        },
+        {
+          "name": "List events (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/events"
+          }
+        },
+        {
+          "name": "Get event by id (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/events/{{eventId}}"
+          }
+        },
+        {
+          "name": "Update event (ORGANIZER, owner only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Show atualizado\",\n  \"availableTickets\": 80\n}"
+            },
+            "url": "{{baseUrl}}/events/{{eventId}}"
+          }
+        },
+        {
+          "name": "Delete event (ORGANIZER, owner only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/events/{{eventId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create order (CUSTOMER, idempotent)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('idempotencyKeyCreate') || pm.variables.get('rotateKey') === 'true') {",
+                  "  pm.collectionVariables.set('idempotencyKeyCreate', require('uuid').v4());",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json && json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('orderId', json.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotencyKeyCreate}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"quantity\": 2\n}"
+            },
+            "url": "{{baseUrl}}/orders"
+          }
+        },
+        {
+          "name": "Get order by id (CUSTOMER, owner only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Pay order (CUSTOMER, idempotent, simulator)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('idempotencyKeyPay') || pm.variables.get('rotateKey') === 'true') {",
+                  "  pm.collectionVariables.set('idempotencyKeyPay', require('uuid').v4());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotencyKeyPay}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"card\": {\n    \"number\": \"4242 4242 4242 4242\",\n    \"holderName\": \"Alice Example\",\n    \"expiryMonth\": 12,\n    \"expiryYear\": 2030,\n    \"cvv\": \"123\"\n  },\n  \"billingAddress\": {\n    \"line1\": \"Rua Augusta 100\",\n    \"city\": \"Lisboa\",\n    \"state\": \"Lisboa\",\n    \"postalCode\": \"1100-053\",\n    \"country\": \"PT\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/orders/{{orderId}}/pay"
+          }
+        }
+      ]
+    }
+  ]
 }
