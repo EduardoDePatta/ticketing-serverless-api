@@ -1,0 +1,90 @@
+{
+    "info": {
+        "name": "Ticketing Serverless API",
+        "description": "Import this file in Postman: File → Import → select this JSON.\nSet collection variables `baseUrl` and `eventId` (eventId after POST create).\n\nResponse envelope (JSON body): success uses `{ \"status\", \"message\", \"data\" }` (numeric status matches HTTP code; `data` may be null). Errors use the same fields plus `traceId` (API Gateway request id); validation errors put `{ \"errors\": { \"field\": \"msg\" } }` in `data` when applicable.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "https://r8gjlndh1e.execute-api.us-east-1.amazonaws.com"
+        },
+        {
+            "key": "eventId",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Health",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/health"
+            }
+        },
+        {
+            "name": "Events",
+            "item": [
+                {
+                    "name": "Create event",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Show de teste\",\n  \"description\": \"Opcional\",\n  \"date\": \"2026-06-15T20:00:00.000Z\",\n  \"location\": \"Lisboa\",\n  \"priceInCents\": 2500,\n  \"availableTickets\": 100,\n  \"currency\": \"EUR\"\n}"
+                        },
+                        "url": "{{baseUrl}}/events"
+                    }
+                },
+                {
+                    "name": "List events",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{baseUrl}}/events"
+                    }
+                },
+                {
+                    "name": "Get event by id",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "{{baseUrl}}/events/{{eventId}}"
+                    }
+                },
+                {
+                    "name": "Update event",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Show atualizado\",\n  \"availableTickets\": 80\n}"
+                        },
+                        "url": "{{baseUrl}}/events/{{eventId}}"
+                    }
+                },
+                {
+                    "name": "Delete event",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": "{{baseUrl}}/events/{{eventId}}"
+                    }
+                }
+            ]
+        }
+    ]
+}
