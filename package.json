@@ -9,7 +9,8 @@
     "remove:dev": "serverless remove --stage dev",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -36,6 +37,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^25.6.0",
     "@types/uuid": "^10.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.3.0",
     "serverless": "^4.35.0",
     "ts-jest": "^29.4.9",
