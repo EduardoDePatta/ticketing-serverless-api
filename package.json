@@ -25,7 +25,8 @@
     "@aws-sdk/client-dynamodb": "^3.1043.0",
     "@aws-sdk/lib-dynamodb": "^3.1043.0",
     "stripe": "^22.1.0",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@serverless/typescript": "^4.30.0",
