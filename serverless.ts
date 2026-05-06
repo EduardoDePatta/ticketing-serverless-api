@@ -1,0 +1,45 @@
+import type { AWS } from "@serverless/typescript";
+
+import { healthFunction } from "./serverless/functions/health";
+import { dynamoDbResources } from "./serverless/resources/dynamodb";
+import { iamRoleStatements } from "./serverless/iam/statements";
+
+const serverlessConfiguration: AWS = {
+    service: "ticketing-serverless-api",
+    frameworkVersion: "4",
+    provider: {
+        name: "aws",
+        runtime: "nodejs20.x",
+        region: "us-east-1",
+        stage: "${opt:stage, 'dev'}",
+        architecture: "arm64",
+        memorySize: 256,
+        timeout: 10,
+        environment: {
+            STAGE: "${self:provider.stage}",
+        },
+        iam: {
+            role: {
+                statements: iamRoleStatements,
+            },
+        },
+    },
+    functions: {
+        health: healthFunction,
+    },
+    resources: {
+        Resources: {
+            ...dynamoDbResources,
+        },
+    },
+    build: {
+        esbuild: {
+            bundle: true,
+            minify: false,
+            sourcemap: true,
+            target: "node20",
+        },
+    },
+};
+
+module.exports = serverlessConfiguration;

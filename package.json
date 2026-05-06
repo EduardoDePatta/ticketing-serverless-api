@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "remove:dev": "serverless remove --stage dev",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -25,11 +28,11 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
+    "@serverless/typescript": "^4.30.0",
     "@types/aws-lambda": "^8.10.161",
     "@types/node": "^25.6.0",
     "@types/uuid": "^10.0.0",
     "serverless": "^4.35.0",
-    "serverless-esbuild": "^1.57.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
