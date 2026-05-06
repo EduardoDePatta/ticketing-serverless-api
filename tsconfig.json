@@ -10,13 +10,16 @@
         "rootDir": ".",
         "types": [
             "node",
-            "aws-lambda"
+            "aws-lambda",
+            "jest"
         ],
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "isolatedModules": true
     },
     "include": [
         "src/**/*.ts",
-        "serverless.ts"
+        "serverless.ts",
+        "tests/**/*.ts"
     ],
     "exclude": [
         "node_modules",

@@ -7,7 +7,9 @@
     "deploy:dev": "serverless deploy --stage dev",
     "deploy:prod": "serverless deploy --stage prod",
     "remove:dev": "serverless remove --stage dev",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -31,9 +33,12 @@
   "devDependencies": {
     "@serverless/typescript": "^4.30.0",
     "@types/aws-lambda": "^8.10.161",
+    "@types/jest": "^30.0.0",
     "@types/node": "^25.6.0",
     "@types/uuid": "^10.0.0",
+    "jest": "^30.3.0",
     "serverless": "^4.35.0",
+    "ts-jest": "^29.4.9",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }
