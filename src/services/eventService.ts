@@ -40,8 +40,9 @@ export class EventService {
 
     async create(params: {
         input: unknown;
+        organizerId: string;
     }): Promise<EventServiceResult<TicketingEvent>> {
-        const { input } = params;
+        const { input, organizerId } = params;
         const parsed = createEventInputSchema.safeParse(input);
         if (!parsed.success) {
             return {
@@ -57,6 +58,7 @@ export class EventService {
         const now = new Date().toISOString();
         const event: TicketingEvent = {
             id: randomUUID(),
+            organizerId,
             name: data.name,
             description: data.description,
             date: data.date,
@@ -103,8 +105,9 @@ export class EventService {
     async update(params: {
         id: string;
         input: unknown;
+        actorId: string;
     }): Promise<EventServiceResult<TicketingEvent>> {
-        const { id, input } = params;
+        const { id, input, actorId } = params;
         const idParsed = eventIdParamSchema.safeParse(id);
         if (!idParsed.success) {
             return {
@@ -127,6 +130,11 @@ export class EventService {
             };
         }
 
+        const existing = await this.repository.findById(idParsed.data);
+        if (!existing || existing.organizerId !== actorId) {
+            return { success: false, failure: { kind: "not_found" } };
+        }
+
         const patch = omitUndefinedKeys({ obj: parsed.data });
 
         const updated = await this.repository.update({
@@ -141,8 +149,11 @@ export class EventService {
         return { success: true, value: updated };
     }
 
-    async delete(params: { id: string }): Promise<EventServiceResult<void>> {
-        const { id } = params;
+    async delete(params: {
+        id: string;
+        actorId: string;
+    }): Promise<EventServiceResult<void>> {
+        const { id, actorId } = params;
         const parsed = eventIdParamSchema.safeParse(id);
         if (!parsed.success) {
             return {
@@ -152,6 +163,11 @@ export class EventService {
                     fields: zodErrorToFieldErrors({ error: parsed.error }),
                 },
             };
+        }
+
+        const existing = await this.repository.findById(parsed.data);
+        if (!existing || existing.organizerId !== actorId) {
+            return { success: false, failure: { kind: "not_found" } };
         }
 
         const deleted = await this.repository.delete(parsed.data);
