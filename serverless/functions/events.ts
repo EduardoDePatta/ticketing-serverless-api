@@ -12,7 +12,6 @@ export const createEventFunction = {
         },
     ],
 };
-
 export const listEventsFunction = {
     handler: "src/functions/listEvents.handler",
     events: [
@@ -24,7 +23,6 @@ export const listEventsFunction = {
         },
     ],
 };
-
 export const getEventFunction = {
     handler: "src/functions/getEvent.handler",
     events: [
@@ -36,7 +34,6 @@ export const getEventFunction = {
         },
     ],
 };
-
 export const updateEventFunction = {
     handler: "src/functions/updateEvent.handler",
     events: [
@@ -51,7 +48,6 @@ export const updateEventFunction = {
         },
     ],
 };
-
 export const deleteEventFunction = {
     handler: "src/functions/deleteEvent.handler",
     events: [

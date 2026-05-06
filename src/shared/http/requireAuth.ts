@@ -1,19 +1,14 @@
-import type {
-    APIGatewayProxyEventV2,
-    APIGatewayProxyResultV2,
-} from "aws-lambda";
-
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2, } from "aws-lambda";
 import { Role } from "../../entities/user";
-import {
-    AuthorizerContext,
-    readAuthorizerContext,
-} from "../auth/authorizerContext";
+import { AuthorizerContext, readAuthorizerContext, } from "../auth/authorizerContext";
 import { apiErrorResponse } from "./apiResponse";
-
-export type RequireAuthResult =
-    | { ok: true; ctx: AuthorizerContext }
-    | { ok: false; response: APIGatewayProxyResultV2 };
-
+export type RequireAuthResult = {
+    ok: true;
+    ctx: AuthorizerContext;
+} | {
+    ok: false;
+    response: APIGatewayProxyResultV2;
+};
 export function requireAuth(params: {
     event: APIGatewayProxyEventV2;
     traceId: string;

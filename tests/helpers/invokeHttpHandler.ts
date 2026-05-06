@@ -1,18 +1,7 @@
-import type {
-    APIGatewayProxyEventV2,
-    APIGatewayProxyHandlerV2,
-    APIGatewayProxyStructuredResultV2,
-    Context,
-} from "aws-lambda";
-
+import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, APIGatewayProxyStructuredResultV2, Context, } from "aws-lambda";
 const emptyContext = {} as Context;
-
-const noopCallback = (): void => {};
-
-export async function invokeHttpHandler(
-    handler: APIGatewayProxyHandlerV2,
-    event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyStructuredResultV2> {
+const noopCallback = (): void => { };
+export async function invokeHttpHandler(handler: APIGatewayProxyHandlerV2, event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> {
     const result = await handler(event, emptyContext, noopCallback);
     if (result === undefined || result === null) {
         throw new Error("Handler returned no result");

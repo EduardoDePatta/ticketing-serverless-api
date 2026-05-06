@@ -1,7 +1,3 @@
-/**
- * Luhn (mod 10) check for credit card numbers (digits-only string).
- * Returns true when the checksum is valid.
- */
 export function isLuhnValid(digits: string): boolean {
     if (!/^\d+$/.test(digits)) {
         return false;
@@ -21,7 +17,6 @@ export function isLuhnValid(digits: string): boolean {
     }
     return sum % 10 === 0;
 }
-
 export function normalizeCardNumber(raw: string): string {
     return raw.replace(/[\s-]/g, "");
 }

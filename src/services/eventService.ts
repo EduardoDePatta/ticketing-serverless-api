@@ -1,43 +1,38 @@
 import { randomUUID } from "node:crypto";
-
 import { EventStatus, TicketingEvent, UpdateEventInput } from "../entities/event";
 import { EventRepository } from "../repositories/eventRepository";
 import type { infer as zInfer } from "zod";
-
-import {
-    createEventInputSchema,
-    eventIdParamSchema,
-    updateEventInputSchema,
-} from "../validation/event";
+import { createEventInputSchema, eventIdParamSchema, updateEventInputSchema, } from "../validation/event";
 import { zodErrorToFieldErrors } from "../validation/zodErrorToFieldErrors";
-
-export type EventServiceFailure =
-    | { kind: "validation"; fields: Record<string, string> }
-    | { kind: "not_found" };
-
-export type EventServiceResult<T> =
-    | { success: true; value: T }
-    | { success: false; failure: EventServiceFailure };
-
+export type EventServiceFailure = {
+    kind: "validation";
+    fields: Record<string, string>;
+} | {
+    kind: "not_found";
+};
+export type EventServiceResult<T> = {
+    success: true;
+    value: T;
+} | {
+    success: false;
+    failure: EventServiceFailure;
+};
 const DEFAULT_CURRENCY = "USD";
 const DEFAULT_STATUS: EventStatus = "ACTIVE";
-
 type UpdateEventParsed = zInfer<typeof updateEventInputSchema>;
-
-function omitUndefinedKeys(params: { obj: UpdateEventParsed }): UpdateEventInput {
+function omitUndefinedKeys(params: {
+    obj: UpdateEventParsed;
+}): UpdateEventInput {
     const { obj } = params;
-    return Object.fromEntries(
-        Object.entries(obj).filter((entry) => entry[1] !== undefined)
-    ) as UpdateEventInput;
+    return Object.fromEntries(Object.entries(obj).filter((entry) => entry[1] !== undefined)) as UpdateEventInput;
 }
-
 export class EventService {
     private readonly repository: EventRepository;
-
-    constructor(params?: { repository?: EventRepository }) {
+    constructor(params?: {
+        repository?: EventRepository;
+    }) {
         this.repository = params?.repository ?? new EventRepository();
     }
-
     async create(params: {
         input: unknown;
         organizerId: string;
@@ -53,7 +48,6 @@ export class EventService {
                 },
             };
         }
-
         const data = parsed.data;
         const now = new Date().toISOString();
         const event: TicketingEvent = {
@@ -70,16 +64,13 @@ export class EventService {
             createdAt: now,
             updatedAt: now,
         };
-
         const created = await this.repository.create(event);
         return { success: true, value: created };
     }
-
     async list(): Promise<EventServiceResult<TicketingEvent[]>> {
         const events = await this.repository.list();
         return { success: true, value: events };
     }
-
     async getById(params: {
         id: string;
     }): Promise<EventServiceResult<TicketingEvent>> {
@@ -94,14 +85,12 @@ export class EventService {
                 },
             };
         }
-
         const event = await this.repository.findById(parsed.data);
         if (!event) {
             return { success: false, failure: { kind: "not_found" } };
         }
         return { success: true, value: event };
     }
-
     async update(params: {
         id: string;
         input: unknown;
@@ -118,7 +107,6 @@ export class EventService {
                 },
             };
         }
-
         const parsed = updateEventInputSchema.safeParse(input);
         if (!parsed.success) {
             return {
@@ -129,26 +117,20 @@ export class EventService {
                 },
             };
         }
-
         const existing = await this.repository.findById(idParsed.data);
         if (!existing || existing.organizerId !== actorId) {
             return { success: false, failure: { kind: "not_found" } };
         }
-
         const patch = omitUndefinedKeys({ obj: parsed.data });
-
         const updated = await this.repository.update({
             id: idParsed.data,
             input: patch,
         });
-
         if (!updated) {
             return { success: false, failure: { kind: "not_found" } };
         }
-
         return { success: true, value: updated };
     }
-
     async delete(params: {
         id: string;
         actorId: string;
@@ -164,17 +146,14 @@ export class EventService {
                 },
             };
         }
-
         const existing = await this.repository.findById(parsed.data);
         if (!existing || existing.organizerId !== actorId) {
             return { success: false, failure: { kind: "not_found" } };
         }
-
         const deleted = await this.repository.delete(parsed.data);
         if (!deleted) {
             return { success: false, failure: { kind: "not_found" } };
         }
-
         return { success: true, value: undefined };
     }
 }

@@ -2,9 +2,7 @@ import { handler } from "../../src/functions/register";
 import { buildHttpApiV2Event } from "../helpers/httpApiV2Event";
 import { invokeHttpHandler } from "../helpers/invokeHttpHandler";
 import { parseLambdaJsonBody } from "../helpers/parseLambdaBody";
-
 const mockRegister = jest.fn();
-
 jest.mock("../../src/shared/auth/authServiceFactory", () => ({
     getDefaultAuthService: () => ({
         register: (...args: unknown[]) => mockRegister(...args),
@@ -14,12 +12,10 @@ jest.mock("../../src/shared/auth/authServiceFactory", () => ({
         getById: jest.fn(),
     }),
 }));
-
 describe("register handler", () => {
     beforeEach(() => {
         mockRegister.mockReset();
     });
-
     it("returns 201 with the public user when service succeeds", async () => {
         mockRegister.mockResolvedValue({
             success: true,
@@ -44,16 +40,17 @@ describe("register handler", () => {
                 http: { method: "POST", path: "/auth/register" },
             },
         });
-
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(201);
         const body = parseLambdaJsonBody(result) as {
-            data: { id: string; email: string };
+            data: {
+                id: string;
+                email: string;
+            };
         };
         expect(body.data.id).toBe("u-1");
         expect(body.data.email).toBe("user@example.com");
     });
-
     it("returns 400 on invalid JSON without calling the service", async () => {
         const event = buildHttpApiV2Event({
             routeKey: "POST /auth/register",
@@ -66,7 +63,6 @@ describe("register handler", () => {
         expect(result.statusCode).toBe(400);
         expect(mockRegister).not.toHaveBeenCalled();
     });
-
     it("returns 409 when email is already registered", async () => {
         mockRegister.mockResolvedValue({
             success: false,
@@ -88,7 +84,6 @@ describe("register handler", () => {
         expect(body.message).toBe("Email already registered");
         expect(body.traceId).toBe("test-request-id");
     });
-
     it("returns 400 with field errors on validation failure", async () => {
         mockRegister.mockResolvedValue({
             success: false,
@@ -107,7 +102,9 @@ describe("register handler", () => {
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(400);
         const body = parseLambdaJsonBody(result) as {
-            data: { errors: Record<string, string> };
+            data: {
+                errors: Record<string, string>;
+            };
         };
         expect(body.data.errors.email).toBeDefined();
     });

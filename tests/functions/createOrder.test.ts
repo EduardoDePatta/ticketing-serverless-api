@@ -1,28 +1,23 @@
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
-
 import { handler } from "../../src/functions/createOrder";
 import { buildHttpApiV2Event } from "../helpers/httpApiV2Event";
 import { invokeHttpHandler } from "../helpers/invokeHttpHandler";
 import { parseLambdaJsonBody } from "../helpers/parseLambdaBody";
-
 const mockCreate = jest.fn();
 const mockTryReserve = jest.fn();
 const mockComplete = jest.fn();
-
 jest.mock("../../src/services/orderService", () => ({
     OrderService: jest.fn().mockImplementation(() => ({
         create: (...args: unknown[]) => mockCreate(...args),
         getById: jest.fn(),
     })),
 }));
-
 jest.mock("../../src/repositories/idempotencyRepository", () => ({
     IdempotencyRepository: jest.fn().mockImplementation(() => ({
         tryReserve: (...args: unknown[]) => mockTryReserve(...args),
         complete: (...args: unknown[]) => mockComplete(...args),
     })),
 }));
-
 function eventWithAuth(params: {
     body?: string;
     headers?: Record<string, string>;
@@ -38,7 +33,9 @@ function eventWithAuth(params: {
     });
     if (params.userId !== undefined || params.role !== undefined) {
         const requestContext = event.requestContext as unknown as {
-            authorizer?: { lambda?: Record<string, unknown> };
+            authorizer?: {
+                lambda?: Record<string, unknown>;
+            };
         };
         requestContext.authorizer = {
             lambda: { userId: params.userId, role: params.role },
@@ -46,14 +43,12 @@ function eventWithAuth(params: {
     }
     return event;
 }
-
 describe("createOrder handler", () => {
     beforeEach(() => {
         mockCreate.mockReset();
         mockTryReserve.mockReset();
         mockComplete.mockReset();
     });
-
     it("returns 401 when authorizer context is missing", async () => {
         const event = eventWithAuth({
             body: JSON.stringify({ eventId: "evt-1", quantity: 2 }),
@@ -64,7 +59,6 @@ describe("createOrder handler", () => {
         expect(mockCreate).not.toHaveBeenCalled();
         expect(mockTryReserve).not.toHaveBeenCalled();
     });
-
     it("returns 403 when caller is an ORGANIZER", async () => {
         const event = eventWithAuth({
             body: JSON.stringify({ eventId: "evt-1", quantity: 2 }),
@@ -76,7 +70,6 @@ describe("createOrder handler", () => {
         expect(result.statusCode).toBe(403);
         expect(mockTryReserve).not.toHaveBeenCalled();
     });
-
     it("returns 400 when Idempotency-Key header is missing", async () => {
         const event = eventWithAuth({
             body: JSON.stringify({ eventId: "evt-1", quantity: 2 }),
@@ -85,12 +78,13 @@ describe("createOrder handler", () => {
         });
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(400);
-        const body = parseLambdaJsonBody(result) as { message: string };
+        const body = parseLambdaJsonBody(result) as {
+            message: string;
+        };
         expect(body.message).toContain("Idempotency-Key");
         expect(mockCreate).not.toHaveBeenCalled();
         expect(mockTryReserve).not.toHaveBeenCalled();
     });
-
     it("returns 400 when body is invalid JSON (after reserving)", async () => {
         mockTryReserve.mockResolvedValue({ kind: "reserved" });
         mockComplete.mockResolvedValue(undefined);
@@ -104,7 +98,6 @@ describe("createOrder handler", () => {
         expect(result.statusCode).toBe(400);
         expect(mockCreate).not.toHaveBeenCalled();
     });
-
     it("forwards customerId from authorizer to service and returns 201 on success", async () => {
         const created = {
             id: "ord-1",
@@ -121,7 +114,6 @@ describe("createOrder handler", () => {
         mockTryReserve.mockResolvedValue({ kind: "reserved" });
         mockComplete.mockResolvedValue(undefined);
         mockCreate.mockResolvedValue({ success: true, value: created });
-
         const event = eventWithAuth({
             body: JSON.stringify({ eventId: "evt-1", quantity: 2 }),
             headers: { "idempotency-key": "k-1" },
@@ -136,10 +128,11 @@ describe("createOrder handler", () => {
             customerId: "u-cust",
         });
         expect(mockComplete).toHaveBeenCalledTimes(1);
-        const body = parseLambdaJsonBody(result) as { data: typeof created };
+        const body = parseLambdaJsonBody(result) as {
+            data: typeof created;
+        };
         expect(body.data?.id).toBe("ord-1");
     });
-
     it("returns 409 when sold out", async () => {
         mockTryReserve.mockResolvedValue({ kind: "reserved" });
         mockComplete.mockResolvedValue(undefined);
@@ -155,10 +148,11 @@ describe("createOrder handler", () => {
         });
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(409);
-        const body = parseLambdaJsonBody(result) as { message: string };
+        const body = parseLambdaJsonBody(result) as {
+            message: string;
+        };
         expect(body.message).toBe("Not enough tickets available");
     });
-
     it("replays cached response when same key + payload is reused", async () => {
         mockTryReserve.mockImplementation(async (params: {
             requestHash: string;
@@ -178,7 +172,6 @@ describe("createOrder handler", () => {
                 expiresAtEpoch: 0,
             },
         }));
-
         const event = eventWithAuth({
             body: JSON.stringify({ eventId: "evt-1", quantity: 2 }),
             headers: { "idempotency-key": "k-1" },
@@ -190,7 +183,9 @@ describe("createOrder handler", () => {
         expect(mockCreate).not.toHaveBeenCalled();
         expect(mockComplete).not.toHaveBeenCalled();
         const body = parseLambdaJsonBody(result) as {
-            data: { id: string };
+            data: {
+                id: string;
+            };
         };
         expect(body.data.id).toBe("ord-1");
     });

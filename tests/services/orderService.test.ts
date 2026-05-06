@@ -3,7 +3,6 @@ import type { Order } from "../../src/entities/order";
 import type { EventRepository } from "../../src/repositories/eventRepository";
 import type { OrderRepository } from "../../src/repositories/orderRepository";
 import { OrderService } from "../../src/services/orderService";
-
 describe("OrderService", () => {
     const eventFindById = jest.fn();
     const eventDecrement = jest.fn();
@@ -11,17 +10,14 @@ describe("OrderService", () => {
     const orderFindById = jest.fn();
     const idGenerator = jest.fn();
     const now = jest.fn();
-
     const eventRepository = {
         findById: eventFindById,
         decrementAvailableTickets: eventDecrement,
     } as unknown as EventRepository;
-
     const orderRepository = {
         create: orderCreate,
         findById: orderFindById,
     } as unknown as OrderRepository;
-
     function makeService(): OrderService {
         return new OrderService({
             eventRepository,
@@ -31,10 +27,7 @@ describe("OrderService", () => {
             reservationTtlSeconds: 30 * 60,
         });
     }
-
-    function makeEvent(
-        overrides: Partial<TicketingEvent> = {}
-    ): TicketingEvent {
+    function makeEvent(overrides: Partial<TicketingEvent> = {}): TicketingEvent {
         return {
             id: "evt-1",
             organizerId: "u-org",
@@ -50,7 +43,6 @@ describe("OrderService", () => {
             ...overrides,
         };
     }
-
     function makeOrder(overrides: Partial<Order> = {}): Order {
         return {
             id: "ord-1",
@@ -66,7 +58,6 @@ describe("OrderService", () => {
             ...overrides,
         };
     }
-
     beforeEach(() => {
         eventFindById.mockReset();
         eventDecrement.mockReset();
@@ -77,7 +68,6 @@ describe("OrderService", () => {
         now.mockReset();
         now.mockReturnValue(new Date("2026-01-01T00:00:00.000Z"));
     });
-
     describe("create", () => {
         it("returns validation failure when input is bad", async () => {
             const r = await makeService().create({
@@ -92,7 +82,6 @@ describe("OrderService", () => {
             expect(eventDecrement).not.toHaveBeenCalled();
             expect(orderCreate).not.toHaveBeenCalled();
         });
-
         it("returns event_not_found when the event does not exist", async () => {
             eventFindById.mockResolvedValue(null);
             const r = await makeService().create({
@@ -106,7 +95,6 @@ describe("OrderService", () => {
             expect(eventDecrement).not.toHaveBeenCalled();
             expect(orderCreate).not.toHaveBeenCalled();
         });
-
         it("returns event_not_active when event status is not ACTIVE", async () => {
             eventFindById.mockResolvedValue(makeEvent({ status: "CANCELLED" }));
             const r = await makeService().create({
@@ -120,7 +108,6 @@ describe("OrderService", () => {
             expect(eventDecrement).not.toHaveBeenCalled();
             expect(orderCreate).not.toHaveBeenCalled();
         });
-
         it("returns sold_out when ticket decrement fails", async () => {
             eventFindById.mockResolvedValue(makeEvent({ availableTickets: 1 }));
             eventDecrement.mockResolvedValue(false);
@@ -138,19 +125,14 @@ describe("OrderService", () => {
             });
             expect(orderCreate).not.toHaveBeenCalled();
         });
-
         it("persists a PENDING order tagged with the customerId", async () => {
-            eventFindById.mockResolvedValue(
-                makeEvent({ priceInCents: 1500, currency: "USD" })
-            );
+            eventFindById.mockResolvedValue(makeEvent({ priceInCents: 1500, currency: "USD" }));
             eventDecrement.mockResolvedValue(true);
             orderCreate.mockImplementation(async (o: Order) => o);
-
             const r = await makeService().create({
                 input: { eventId: "evt-1", quantity: 3 },
                 customerId: "u-cust",
             });
-
             expect(r.success).toBe(true);
             if (r.success) {
                 expect(r.value.id).toBe("ord-1");
@@ -168,7 +150,6 @@ describe("OrderService", () => {
             expect(persisted.status).toBe("PENDING");
         });
     });
-
     describe("getById", () => {
         it("returns validation failure when id is empty", async () => {
             const r = await makeService().getById({
@@ -181,7 +162,6 @@ describe("OrderService", () => {
             }
             expect(orderFindById).not.toHaveBeenCalled();
         });
-
         it("returns order_not_found when the order is missing", async () => {
             orderFindById.mockResolvedValue(null);
             const r = await makeService().getById({
@@ -193,11 +173,8 @@ describe("OrderService", () => {
                 expect(r.failure.kind).toBe("order_not_found");
             }
         });
-
         it("returns order_not_found when the caller is not the order owner", async () => {
-            orderFindById.mockResolvedValue(
-                makeOrder({ customerId: "someone-else" })
-            );
+            orderFindById.mockResolvedValue(makeOrder({ customerId: "someone-else" }));
             const r = await makeService().getById({
                 id: "ord-1",
                 customerId: "u-cust",
@@ -207,7 +184,6 @@ describe("OrderService", () => {
                 expect(r.failure.kind).toBe("order_not_found");
             }
         });
-
         it("returns the order when the caller owns it", async () => {
             orderFindById.mockResolvedValue(makeOrder({ customerId: "u-cust" }));
             const r = await makeService().getById({

@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 export const eventIdParamSchema = z
     .string()
     .trim()

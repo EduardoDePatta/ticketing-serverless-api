@@ -2,9 +2,7 @@ import { handler } from "../../src/functions/login";
 import { buildHttpApiV2Event } from "../helpers/httpApiV2Event";
 import { invokeHttpHandler } from "../helpers/invokeHttpHandler";
 import { parseLambdaJsonBody } from "../helpers/parseLambdaBody";
-
 const mockLogin = jest.fn();
-
 jest.mock("../../src/shared/auth/authServiceFactory", () => ({
     getDefaultAuthService: () => ({
         register: jest.fn(),
@@ -14,12 +12,10 @@ jest.mock("../../src/shared/auth/authServiceFactory", () => ({
         getById: jest.fn(),
     }),
 }));
-
 describe("login handler", () => {
     beforeEach(() => {
         mockLogin.mockReset();
     });
-
     it("returns 200 with session when credentials are valid", async () => {
         mockLogin.mockResolvedValue({
             success: true,
@@ -49,12 +45,14 @@ describe("login handler", () => {
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(200);
         const body = parseLambdaJsonBody(result) as {
-            data: { accessToken: string; refreshToken: string };
+            data: {
+                accessToken: string;
+                refreshToken: string;
+            };
         };
         expect(body.data.accessToken).toBe("access-jwt");
         expect(body.data.refreshToken).toBe("rt.id");
     });
-
     it("returns 401 invalid credentials when service rejects", async () => {
         mockLogin.mockResolvedValue({
             success: false,

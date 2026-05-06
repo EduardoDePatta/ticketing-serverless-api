@@ -1,7 +1,5 @@
 import { z } from "zod";
-
 import { zodErrorToFieldErrors } from "../../src/validation/zodErrorToFieldErrors";
-
 describe("zodErrorToFieldErrors", () => {
     it("maps first issue per path to a field key", () => {
         const schema = z.strictObject({
@@ -16,7 +14,6 @@ describe("zodErrorToFieldErrors", () => {
             expect(fields.b).toBeDefined();
         }
     });
-
     it("uses _root when path is empty", () => {
         const schema = z.string().min(1);
         const parsed = schema.safeParse("");

@@ -1,13 +1,11 @@
 import { PasswordHasher } from "../../../src/shared/auth/passwordHasher";
 import type { SecretsProvider } from "../../../src/shared/auth/secretsProvider";
-
 function makeSecretsProvider(pepper: string): SecretsProvider {
     return {
         getPepper: jest.fn(async () => pepper),
         getJwtSigningKey: jest.fn(async () => "unused"),
     };
 }
-
 describe("PasswordHasher", () => {
     it("produces different hashes for the same password (random salt)", async () => {
         const hasher = new PasswordHasher({
@@ -17,7 +15,6 @@ describe("PasswordHasher", () => {
         const b = await hasher.hash({ password: "correct horse battery staple" });
         expect(a).not.toBe(b);
     });
-
     it("verifies a hash with the original password", async () => {
         const hasher = new PasswordHasher({
             secretsProvider: makeSecretsProvider("p1"),
@@ -29,7 +26,6 @@ describe("PasswordHasher", () => {
         });
         expect(ok).toBe(true);
     });
-
     it("rejects verification with the wrong password", async () => {
         const hasher = new PasswordHasher({
             secretsProvider: makeSecretsProvider("p1"),
@@ -41,12 +37,10 @@ describe("PasswordHasher", () => {
         });
         expect(ok).toBe(false);
     });
-
     it("rejects verification when the pepper changed", async () => {
         const hashedWithP1 = await new PasswordHasher({
             secretsProvider: makeSecretsProvider("pepper-1"),
         }).hash({ password: "samepassword" });
-
         const verifierWithP2 = new PasswordHasher({
             secretsProvider: makeSecretsProvider("pepper-2"),
         });
@@ -56,7 +50,6 @@ describe("PasswordHasher", () => {
         });
         expect(ok).toBe(false);
     });
-
     it("returns false (not throw) on garbage hashes", async () => {
         const hasher = new PasswordHasher({
             secretsProvider: makeSecretsProvider("p1"),

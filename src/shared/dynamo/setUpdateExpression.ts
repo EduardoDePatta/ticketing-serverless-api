@@ -3,24 +3,16 @@ export interface SetUpdateExpressionParts {
     ExpressionAttributeNames: Record<string, string>;
     ExpressionAttributeValues: Record<string, unknown>;
 }
-
 export interface BuildSetUpdateExpressionParams {
     item: object;
     keyAttributeName?: string;
 }
-
-export function buildSetUpdateExpression(
-    params: BuildSetUpdateExpressionParams
-): SetUpdateExpressionParts {
+export function buildSetUpdateExpression(params: BuildSetUpdateExpressionParams): SetUpdateExpressionParts {
     const { item, keyAttributeName = "id" } = params;
-    const entries = Object.entries(item as Record<string, unknown>).filter(
-        ([key]) => key !== keyAttributeName
-    );
-
+    const entries = Object.entries(item as Record<string, unknown>).filter(([key]) => key !== keyAttributeName);
     const ExpressionAttributeNames: Record<string, string> = {};
     const ExpressionAttributeValues: Record<string, unknown> = {};
     const setParts: string[] = [];
-
     let i = 0;
     for (const [attrName, value] of entries) {
         const namePlaceholder = `#a${i}`;
@@ -31,7 +23,6 @@ export function buildSetUpdateExpression(
         setParts.push(`${namePlaceholder} = ${valuePlaceholder}`);
         i += 1;
     }
-
     return {
         UpdateExpression: `SET ${setParts.join(", ")}`,
         ExpressionAttributeNames,

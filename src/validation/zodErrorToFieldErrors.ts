@@ -1,5 +1,4 @@
 import type { ZodError } from "zod";
-
 export function zodErrorToFieldErrors(params: {
     error: ZodError;
 }): Record<string, string> {

@@ -1,14 +1,12 @@
 import type { TicketingEvent } from "../../src/entities/event";
 import type { EventRepository } from "../../src/repositories/eventRepository";
 import { EventService } from "../../src/services/eventService";
-
 describe("EventService", () => {
     const create = jest.fn();
     const list = jest.fn();
     const findById = jest.fn();
     const update = jest.fn();
     const del = jest.fn();
-
     const repository = {
         create,
         list,
@@ -16,11 +14,9 @@ describe("EventService", () => {
         update,
         delete: del,
     } as unknown as EventRepository;
-
     function makeService(): EventService {
         return new EventService({ repository });
     }
-
     function makeStored(overrides: Partial<TicketingEvent> = {}): TicketingEvent {
         return {
             id: "evt-1",
@@ -37,7 +33,6 @@ describe("EventService", () => {
             ...overrides,
         };
     }
-
     beforeEach(() => {
         create.mockReset();
         list.mockReset();
@@ -45,7 +40,6 @@ describe("EventService", () => {
         update.mockReset();
         del.mockReset();
     });
-
     describe("create", () => {
         it("returns validation failure on bad input", async () => {
             const r = await makeService().create({
@@ -58,7 +52,6 @@ describe("EventService", () => {
             }
             expect(create).not.toHaveBeenCalled();
         });
-
         it("persists the event with organizerId from the actor", async () => {
             create.mockImplementation(async (e: TicketingEvent) => e);
             const r = await makeService().create({
@@ -77,7 +70,6 @@ describe("EventService", () => {
             expect(persisted.organizerId).toBe("u-org");
         });
     });
-
     describe("update", () => {
         it("returns not_found when event is missing", async () => {
             findById.mockResolvedValue(null);
@@ -92,7 +84,6 @@ describe("EventService", () => {
             }
             expect(update).not.toHaveBeenCalled();
         });
-
         it("returns not_found when actor is not the organizer", async () => {
             findById.mockResolvedValue(makeStored());
             const r = await makeService().update({
@@ -106,7 +97,6 @@ describe("EventService", () => {
             }
             expect(update).not.toHaveBeenCalled();
         });
-
         it("updates the event when the actor is the organizer", async () => {
             const stored = makeStored();
             findById.mockResolvedValue(stored);
@@ -122,7 +112,6 @@ describe("EventService", () => {
             }
         });
     });
-
     describe("delete", () => {
         it("returns not_found when event is missing", async () => {
             findById.mockResolvedValue(null);
@@ -136,7 +125,6 @@ describe("EventService", () => {
             }
             expect(del).not.toHaveBeenCalled();
         });
-
         it("returns not_found when actor is not the organizer", async () => {
             findById.mockResolvedValue(makeStored());
             const r = await makeService().delete({
@@ -149,7 +137,6 @@ describe("EventService", () => {
             }
             expect(del).not.toHaveBeenCalled();
         });
-
         it("deletes when actor matches organizer", async () => {
             const stored = makeStored();
             findById.mockResolvedValue(stored);
@@ -161,14 +148,12 @@ describe("EventService", () => {
             expect(r.success).toBe(true);
         });
     });
-
     describe("getById and list", () => {
         it("returns the stored event regardless of caller (public endpoint)", async () => {
             findById.mockResolvedValue(makeStored());
             const r = await makeService().getById({ id: "evt-1" });
             expect(r.success).toBe(true);
         });
-
         it("list returns events", async () => {
             list.mockResolvedValue([makeStored()]);
             const r = await makeService().list();

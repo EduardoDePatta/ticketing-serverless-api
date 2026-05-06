@@ -1,7 +1,6 @@
 export const authAuthorizerFunction = {
     handler: "src/functions/authorizer.handler",
 };
-
 export const registerFunction = {
     handler: "src/functions/register.handler",
     events: [
@@ -13,7 +12,6 @@ export const registerFunction = {
         },
     ],
 };
-
 export const loginFunction = {
     handler: "src/functions/login.handler",
     events: [
@@ -25,7 +23,6 @@ export const loginFunction = {
         },
     ],
 };
-
 export const refreshFunction = {
     handler: "src/functions/refresh.handler",
     events: [
@@ -37,7 +34,6 @@ export const refreshFunction = {
         },
     ],
 };
-
 export const logoutFunction = {
     handler: "src/functions/logout.handler",
     events: [
@@ -49,7 +45,6 @@ export const logoutFunction = {
         },
     ],
 };
-
 export const meFunction = {
     handler: "src/functions/me.handler",
     events: [

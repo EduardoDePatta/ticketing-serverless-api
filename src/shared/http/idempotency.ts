@@ -1,14 +1,7 @@
 import { createHash } from "node:crypto";
-
-import type {
-    APIGatewayProxyEventV2,
-    APIGatewayProxyResultV2,
-    APIGatewayProxyStructuredResultV2,
-} from "aws-lambda";
-
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2, APIGatewayProxyStructuredResultV2, } from "aws-lambda";
 import { IdempotencyRepository } from "../../repositories/idempotencyRepository";
 import { apiErrorResponse } from "./apiResponse";
-
 export interface RunWithIdempotencyParams {
     event: APIGatewayProxyEventV2;
     customerId: string;
@@ -24,14 +17,7 @@ export interface RunWithIdempotencyParams {
         body: string;
     }) => string;
 }
-
 const DEFAULT_TTL_SECONDS = 24 * 60 * 60;
-
-/**
- * Deterministic JSON text for hashing (sorted object keys). Ignores cosmetic
- * differences in serialization (whitespace, key order) that clients often vary
- * between retries.
- */
 function stableStringify(value: unknown): string {
     if (value === null) {
         return "null";
@@ -55,7 +41,6 @@ function stableStringify(value: unknown): string {
     }
     return JSON.stringify(value);
 }
-
 function canonicalBodyForHash(body: string): string {
     const trimmed = body.trim();
     if (trimmed === "") {
@@ -66,19 +51,12 @@ function canonicalBodyForHash(body: string): string {
         if (parsed !== null && typeof parsed === "object") {
             return stableStringify(parsed);
         }
-        return JSON.stringify(
-            parsed as string | number | boolean | null
-        );
-    } catch {
+        return JSON.stringify(parsed as string | number | boolean | null);
+    }
+    catch {
         return body;
     }
 }
-
-/**
- * Legacy request fingerprint (raw body bytes). Kept for comparison so existing
- * DynamoDB rows written before canonical hashing still match replays with the
- * exact same HTTP body.
- */
 export function legacyRawBodyRequestHash(params: {
     method: string;
     path: string;
@@ -89,7 +67,6 @@ export function legacyRawBodyRequestHash(params: {
         .update(`${method}\n${path}\n${body}`)
         .digest("hex");
 }
-
 export function buildIdempotencyRequestHash(params: {
     method: string;
     path: string;
@@ -101,7 +78,6 @@ export function buildIdempotencyRequestHash(params: {
         .update(`${method}\n${path}\n${canonicalBody}`)
         .digest("hex");
 }
-
 function storedRequestMatches(params: {
     storedHash: string;
     method: string;
@@ -116,7 +92,6 @@ function storedRequestMatches(params: {
     const legacyHash = legacyRawBodyRequestHash({ method, path, body });
     return storedHash === legacyHash;
 }
-
 function readHeader(params: {
     event: APIGatewayProxyEventV2;
     name: string;
@@ -134,22 +109,8 @@ function readHeader(params: {
     }
     return undefined;
 }
-
-export async function runWithIdempotency(
-    params: RunWithIdempotencyParams
-): Promise<APIGatewayProxyResultV2> {
-    const {
-        event,
-        customerId,
-        traceId,
-        scope,
-        repository,
-        ttlSeconds = DEFAULT_TTL_SECONDS,
-        exec,
-        now = () => new Date(),
-        hashRequest = buildIdempotencyRequestHash,
-    } = params;
-
+export async function runWithIdempotency(params: RunWithIdempotencyParams): Promise<APIGatewayProxyResultV2> {
+    const { event, customerId, traceId, scope, repository, ttlSeconds = DEFAULT_TTL_SECONDS, exec, now = () => new Date(), hashRequest = buildIdempotencyRequestHash, } = params;
     const idempotencyKey = readHeader({ event, name: "Idempotency-Key" });
     if (!idempotencyKey) {
         return apiErrorResponse({
@@ -159,7 +120,6 @@ export async function runWithIdempotency(
             traceId,
         });
     }
-
     const pk = `${scope}#${customerId}#${idempotencyKey}`;
     const method = event.requestContext.http.method;
     const path = event.rawPath ?? event.requestContext.http.path;
@@ -169,29 +129,24 @@ export async function runWithIdempotency(
         path,
         body,
     });
-
     const reserveResult = await repository.tryReserve({
         pk,
         requestHash,
         ttlSeconds,
         now: now(),
     });
-
     if (reserveResult.kind === "existing") {
         const existing = reserveResult.record;
-        if (
-            !storedRequestMatches({
-                storedHash: existing.requestHash,
-                method,
-                path,
-                body,
-                primaryHash: requestHash,
-            })
-        ) {
+        if (!storedRequestMatches({
+            storedHash: existing.requestHash,
+            method,
+            path,
+            body,
+            primaryHash: requestHash,
+        })) {
             return apiErrorResponse({
                 statusCode: 422,
-                message:
-                    "Idempotency-Key was already used with a different request payload",
+                message: "Idempotency-Key was already used with a different request payload",
                 data: null,
                 traceId,
             });
@@ -210,16 +165,13 @@ export async function runWithIdempotency(
             body: existing.responseBody ?? "",
         };
     }
-
     const result = await exec();
     const statusCode = result.statusCode ?? 200;
     const responseBody = typeof result.body === "string" ? result.body : "";
-
     await repository.complete({
         pk,
         statusCode,
         responseBody,
     });
-
     return result;
 }

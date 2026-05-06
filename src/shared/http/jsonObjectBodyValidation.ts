@@ -1,12 +1,13 @@
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
-
 import { apiErrorResponse } from "./apiResponse";
 import { parseJsonBody } from "../parseJsonBody";
-
-export type JsonObjectBodyParseResult =
-    | { ok: true; value: Record<string, unknown> }
-    | { ok: false; response: APIGatewayProxyResultV2 };
-
+export type JsonObjectBodyParseResult = {
+    ok: true;
+    value: Record<string, unknown>;
+} | {
+    ok: false;
+    response: APIGatewayProxyResultV2;
+};
 export class JsonObjectBodyValidation {
     static parseOrBadRequest(params: {
         rawBody: string | undefined | null;
@@ -16,11 +17,9 @@ export class JsonObjectBodyValidation {
         if (parsed.ok) {
             return { ok: true, value: parsed.value };
         }
-
         const message = JsonObjectBodyValidation.messageForFailureReason({
             reason: parsed.reason,
         });
-
         return {
             ok: false,
             response: apiErrorResponse({
@@ -31,7 +30,6 @@ export class JsonObjectBodyValidation {
             }),
         };
     }
-
     private static messageForFailureReason(params: {
         reason: "invalid_json" | "not_object";
     }): string {

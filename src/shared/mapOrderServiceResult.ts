@@ -1,15 +1,12 @@
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
-
 import type { OrderServiceResult } from "../services/orderService";
 import { apiErrorResponse, apiSuccessResponse } from "./http/apiResponse";
-
 export function mapOrderServiceResult<T>(params: {
     result: OrderServiceResult<T>;
     successStatus: number;
     traceId: string;
 }): APIGatewayProxyResultV2 {
     const { result, successStatus, traceId } = params;
-
     if (result.success) {
         return apiSuccessResponse({
             statusCode: successStatus,
@@ -17,7 +14,6 @@ export function mapOrderServiceResult<T>(params: {
             data: result.value,
         });
     }
-
     switch (result.failure.kind) {
         case "validation":
             return apiErrorResponse({

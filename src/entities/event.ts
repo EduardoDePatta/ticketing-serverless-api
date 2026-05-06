@@ -1,5 +1,4 @@
 export type EventStatus = "ACTIVE" | "CANCELLED";
-
 export interface TicketingEvent {
     id: string;
     organizerId: string;
@@ -14,7 +13,6 @@ export interface TicketingEvent {
     createdAt: string;
     updatedAt: string;
 }
-
 export interface CreateEventInput {
     name: string;
     description?: string;
@@ -24,7 +22,6 @@ export interface CreateEventInput {
     currency?: string;
     availableTickets: number;
 }
-
 export interface UpdateEventInput {
     name?: string;
     description?: string;

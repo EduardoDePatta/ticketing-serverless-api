@@ -1,248 +1,69 @@
-# Ticketing Serverless API - TODO
+# Ticketing Serverless API — estado e backlog
 
-## Project Setup
-
-- [x] Create GitHub repository
-- [x] Initialize Node.js project
-- [x] Configure TypeScript
-- [x] Configure Serverless Framework v4
-- [x] Configure AWS credentials
-- [x] Configure initial Serverless deployment
-- [x] Create health check endpoint
-- [x] Deploy initial Lambda successfully
+Última revisão: alinhado ao código actual (auth, eventos, encomendas, pagamento simulado, idempotência, testes).
 
 ---
 
-## Infrastructure as Code (IaC)
+## Concluído
 
-### Core Infrastructure
+### Infra e IaC
 
-- [x] Create DynamoDB Events table
-- [x] Configure IAM permissions for DynamoDB access
-- [x] Configure environment variables
-- [ ] Create DynamoDB Orders table
-- [ ] Configure stage-based resource naming
-- [ ] Configure production stage
-- [ ] Configure CloudWatch log retention
-- [ ] Configure Lambda environment separation (dev/prod)
+- [x] Serverless Framework v4, Node.js 20, região e stage configuráveis
+- [x] DynamoDB: eventos, encomendas, pagamentos, idempotência, utilizadores, refresh tokens
+- [x] Secrets Manager (pepper JWT, assinatura de tokens)
+- [x] IAM por recursos em `serverless/iam/statements.ts`
+- [x] Configuração modular em `serverless/` + `serverless.ts`
 
-### Serverless Organization
+### Domínio Eventos
 
-- [x] Separate serverless configuration files
-- [ ] Separate functions by domain
-- [ ] Separate resources by domain
-- [ ] Separate IAM statements by domain
+- [x] Entidade, validação Zod, `EventRepository`, `EventService`
+- [x] Rotas HTTP: criar, listar, obter, atualizar, apagar evento
+- [x] Testes de handlers e serviço
 
----
+### Domínio Encomendas e pagamento
 
-## Events Domain
+- [x] Entidades Order / Payment, repositórios, `OrderService`, `PaymentService`
+- [x] `POST /orders`, `GET /orders/{id}`, `POST /orders/{id}/pay` com cartão **simulado** (não Stripe Checkout)
+- [x] Idempotência (`Idempotency-Key`) com hash canónico de JSON + compatibilidade legado
+- [x] Limpeza de encomendas expiradas (Lambda agendada)
 
-### Entity & Validation
+### Auth
 
-- [ ] Create Event entity
-- [ ] Create Event types/interfaces
-- [ ] Add Event validation rules
-- [ ] Validate event price
-- [ ] Validate available tickets
-- [ ] Validate required fields
+- [x] Registo, login, refresh, logout, `GET /me`
+- [x] Authorizer JWT HTTP API
+- [x] Argon2id via `hash-wasm` (compatível com bundle Serverless)
 
-### Repository Layer
+### Qualidade
 
-- [ ] Create EventRepository
-- [ ] Implement create event
-- [ ] Implement list events
-- [ ] Implement get event by id
-- [ ] Implement update event
-- [ ] Implement delete event
-
-### Service Layer
-
-- [ ] Create EventService
-- [ ] Implement business rules
-- [ ] Handle domain errors
-- [ ] Handle validation errors
-
-### Lambda Handlers
-
-- [ ] Create createEvent handler
-- [ ] Create listEvents handler
-- [ ] Create getEvent handler
-- [ ] Create updateEvent handler
-- [ ] Create deleteEvent handler
-
-### API Gateway Routes
-
-- [ ] POST /events
-- [ ] GET /events
-- [ ] GET /events/{id}
-- [ ] PUT /events/{id}
-- [ ] DELETE /events/{id}
-
-### Testing Events API
-
-- [ ] Test create event
-- [ ] Test list events
-- [ ] Test get event
-- [ ] Test update event
-- [ ] Test delete event
+- [x] Jest + cobertura ampla em `tests/`
+- [x] Coleção Postman em `postman/ticketing-api.postman_collection.json`
 
 ---
 
-## Orders Domain
+## Backlog sugerido
 
-### Entity & Validation
+### Produto / integrações
 
-- [ ] Create Order entity
-- [ ] Create Order types/interfaces
-- [ ] Create order statuses
-- [ ] Validate order creation
-- [ ] Validate ticket quantity
+- [ ] Substituir ou complementar pagamento simulado por **Stripe** (Checkout ou Payment Intents + webhooks), se for requisito de produto
+- [ ] Retenção explícita de logs CloudWatch por stage
+- [ ] Endurecer separação dev/prod (variáveis, limites, alarms)
 
-### Repository Layer
+### CI/CD
 
-- [ ] Create OrderRepository
-- [ ] Implement create order
-- [ ] Implement get order
-- [ ] Implement update order status
+- [ ] Workflow GitHub Actions (instalar, testar, `serverless deploy` por branch/stage)
+- [ ] Secrets no GitHub para deploy
 
-### Service Layer
+### Observabilidade
 
-- [ ] Create OrderService
-- [ ] Implement payment flow logic
-- [ ] Reserve tickets on order creation
+- [ ] Logging estruturado (nível, correlacionar `traceId` em todas as ramificações)
+- [ ] Métricas/alarms (taxa de erro 5xx, duração Lambda)
 
-### Lambda Handlers
+### Documentação
 
-- [ ] Create createCheckoutSession handler
-- [ ] Create getOrder handler
-- [ ] Create stripeWebhook handler
+- [ ] README com visão geral, variáveis de ambiente, fluxo de deploy e exemplos de pedidos
+- [ ] Vídeo ou walkthrough (ex.: Loom), se necessário para entrega
 
-### API Gateway Routes
+### Revisão final
 
-- [ ] POST /orders/checkout
-- [ ] GET /orders/{id}
-- [ ] POST /webhooks/stripe
-
----
-
-## Stripe Integration
-
-### Stripe Setup
-
-- [ ] Create Stripe account
-- [ ] Generate Stripe secret key
-- [ ] Configure Stripe webhook secret
-- [ ] Configure Stripe environment variables
-
-### Checkout Flow
-
-- [ ] Create Stripe Checkout Session
-- [ ] Return checkout URL
-- [ ] Persist Stripe session ID
-- [ ] Persist Stripe payment intent ID
-
-### Webhooks
-
-- [ ] Validate Stripe webhook signature
-- [ ] Handle checkout.session.completed
-- [ ] Update order status to PAID
-- [ ] Reduce available tickets
-- [ ] Handle failed payments
-
-### Local Testing
-
-- [ ] Install Stripe CLI
-- [ ] Test Stripe webhook locally
-- [ ] Test successful payment flow
-
----
-
-## CI/CD
-
-### GitHub Actions
-
-- [ ] Create GitHub Actions workflow
-- [ ] Configure deploy on push to master
-- [ ] Configure dev deployment
-- [ ] Configure prod deployment
-- [ ] Configure Node.js setup
-- [ ] Configure dependency cache
-
-### GitHub Secrets
-
-- [ ] Add AWS_ACCESS_KEY_ID
-- [ ] Add AWS_SECRET_ACCESS_KEY
-- [ ] Add AWS_REGION
-- [ ] Add STRIPE_SECRET_KEY
-- [ ] Add STRIPE_WEBHOOK_SECRET
-
-### Deployment Validation
-
-- [ ] Validate automatic deployment
-- [ ] Validate stage deployment
-- [ ] Validate environment variables
-
----
-
-## Observability
-
-- [ ] Add structured logging
-- [ ] Add error handling middleware
-- [ ] Add request validation
-- [ ] Add CloudWatch log monitoring
-
----
-
-## Testing
-
-### Unit Tests
-
-- [ ] Add Jest
-- [ ] Test EventService
-- [ ] Test OrderService
-- [ ] Test repositories
-
-### Integration Tests
-
-- [ ] Test Events API integration
-- [ ] Test Orders API integration
-- [ ] Test Stripe integration
-
----
-
-## Documentation
-
-### README
-
-- [ ] Add project overview
-- [ ] Add architecture explanation
-- [ ] Add infrastructure explanation
-- [ ] Add setup instructions
-- [ ] Add deployment instructions
-- [ ] Add environment variables
-- [ ] Add API documentation
-- [ ] Add example requests/responses
-- [ ] Add CI/CD screenshots
-- [ ] Add Stripe flow explanation
-
-### Loom Video
-
-- [ ] Record Loom walkthrough
-- [ ] Explain architecture
-- [ ] Explain Serverless Framework setup
-- [ ] Explain DynamoDB design
-- [ ] Explain Stripe integration
-- [ ] Explain CI/CD pipeline
-
----
-
-## Final Review
-
-- [ ] Review folder structure
-- [ ] Review naming consistency
-- [ ] Remove dead code
-- [ ] Review security basics
-- [ ] Review environment variables
-- [ ] Validate production deployment
-- [ ] Final README review
-- [ ] Final API test
+- [ ] Passagem de segurança (secrets, permissões IAM mínimas, headers sensíveis)
+- [ ] Teste manual ou E2E contra stage deployado

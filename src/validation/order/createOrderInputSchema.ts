@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 export const createOrderInputSchema = z.strictObject({
     eventId: z.string().trim().min(1, "Event id is required"),
     quantity: z

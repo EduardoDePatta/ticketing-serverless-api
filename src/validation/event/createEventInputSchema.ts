@@ -1,7 +1,5 @@
 import { z } from "zod";
-
 import { optionalCurrency, optionalTrimmedDescription } from "./shared";
-
 export const createEventInputSchema = z.strictObject({
     name: z.string().trim().min(1, "Name is required"),
     description: optionalTrimmedDescription,

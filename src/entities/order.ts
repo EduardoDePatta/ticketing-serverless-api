@@ -1,5 +1,4 @@
 export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "EXPIRED" | "FAILED";
-
 export interface Order {
     id: string;
     customerId: string;

@@ -1,6 +1,5 @@
 export const ROLES = ["ORGANIZER", "CUSTOMER"] as const;
 export type Role = (typeof ROLES)[number];
-
 export interface User {
     id: string;
     email: string;
@@ -10,7 +9,6 @@ export interface User {
     createdAt: string;
     updatedAt: string;
 }
-
 export interface PublicUser {
     id: string;
     email: string;
@@ -19,7 +17,6 @@ export interface PublicUser {
     createdAt: string;
     updatedAt: string;
 }
-
 export function toPublicUser(user: User): PublicUser {
     return {
         id: user.id,

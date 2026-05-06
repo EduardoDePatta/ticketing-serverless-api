@@ -1,5 +1,4 @@
 export type IdempotencyStatus = "in_progress" | "completed";
-
 export interface IdempotencyRecord {
     pk: string;
     status: IdempotencyStatus;

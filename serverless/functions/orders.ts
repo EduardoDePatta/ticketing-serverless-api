@@ -12,7 +12,6 @@ export const createOrderFunction = {
         },
     ],
 };
-
 export const getOrderFunction = {
     handler: "src/functions/getOrder.handler",
     events: [
@@ -27,7 +26,6 @@ export const getOrderFunction = {
         },
     ],
 };
-
 export const payOrderFunction = {
     handler: "src/functions/payOrder.handler",
     events: [
@@ -42,7 +40,6 @@ export const payOrderFunction = {
         },
     ],
 };
-
 export const cleanupExpiredOrdersFunction = {
     handler: "src/functions/cleanupExpiredOrders.handler",
     timeout: 60,

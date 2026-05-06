@@ -1,18 +1,15 @@
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
-
 export type ApiSuccessBody<T> = {
     status: number;
     message: string;
     data: T | null;
 };
-
 export type ApiErrorBody = {
     status: number;
     message: string;
     data: unknown;
     traceId: string;
 };
-
 export function apiSuccessResponse<T>(params: {
     statusCode: number;
     message: string;
@@ -32,7 +29,6 @@ export function apiSuccessResponse<T>(params: {
         body: JSON.stringify(body),
     };
 }
-
 export function apiErrorResponse(params: {
     statusCode: number;
     message: string;

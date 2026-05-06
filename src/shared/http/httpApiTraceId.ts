@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
-
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
-
 export function getHttpApiTraceId(params: {
     event: APIGatewayProxyEventV2;
 }): string {

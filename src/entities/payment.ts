@@ -1,5 +1,4 @@
 export type PaymentStatus = "succeeded" | "declined" | "error";
-
 export interface Payment {
     id: string;
     orderId: string;

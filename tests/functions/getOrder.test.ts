@@ -1,19 +1,15 @@
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
-
 import { handler } from "../../src/functions/getOrder";
 import { buildHttpApiV2Event } from "../helpers/httpApiV2Event";
 import { invokeHttpHandler } from "../helpers/invokeHttpHandler";
 import { parseLambdaJsonBody } from "../helpers/parseLambdaBody";
-
 const mockGetById = jest.fn();
-
 jest.mock("../../src/services/orderService", () => ({
     OrderService: jest.fn().mockImplementation(() => ({
         create: jest.fn(),
         getById: (...args: unknown[]) => mockGetById(...args),
     })),
 }));
-
 function eventWithAuth(params: {
     id?: string;
     userId?: string;
@@ -29,7 +25,9 @@ function eventWithAuth(params: {
     });
     if (params.userId !== undefined || params.role !== undefined) {
         const requestContext = event.requestContext as unknown as {
-            authorizer?: { lambda?: Record<string, unknown> };
+            authorizer?: {
+                lambda?: Record<string, unknown>;
+            };
         };
         requestContext.authorizer = {
             lambda: { userId: params.userId, role: params.role },
@@ -37,19 +35,16 @@ function eventWithAuth(params: {
     }
     return event;
 }
-
 describe("getOrder handler", () => {
     beforeEach(() => {
         mockGetById.mockReset();
     });
-
     it("returns 401 when authorizer context is missing", async () => {
         const event = eventWithAuth({ id: "ord-1" });
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(401);
         expect(mockGetById).not.toHaveBeenCalled();
     });
-
     it("returns 403 when caller is an ORGANIZER", async () => {
         const event = eventWithAuth({
             id: "ord-1",
@@ -60,7 +55,6 @@ describe("getOrder handler", () => {
         expect(result.statusCode).toBe(403);
         expect(mockGetById).not.toHaveBeenCalled();
     });
-
     it("forwards customerId to service and returns 200 when owner matches", async () => {
         const order = {
             id: "ord-1",
@@ -86,10 +80,11 @@ describe("getOrder handler", () => {
             id: "ord-1",
             customerId: "u-cust",
         });
-        const body = parseLambdaJsonBody(result) as { data: typeof order };
+        const body = parseLambdaJsonBody(result) as {
+            data: typeof order;
+        };
         expect(body.data?.id).toBe("ord-1");
     });
-
     it("returns 404 when service reports order_not_found", async () => {
         mockGetById.mockResolvedValue({
             success: false,
@@ -102,7 +97,9 @@ describe("getOrder handler", () => {
         });
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(404);
-        const body = parseLambdaJsonBody(result) as { message: string };
+        const body = parseLambdaJsonBody(result) as {
+            message: string;
+        };
         expect(body.message).toBe("Order not found");
     });
 });

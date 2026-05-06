@@ -1,16 +1,12 @@
 import type { APIGatewayRequestAuthorizerEventV2 } from "aws-lambda";
-
 import { handler } from "../../src/functions/authorizer";
-
 const mockVerify = jest.fn();
-
 jest.mock("../../src/shared/auth/authServiceFactory", () => ({
     getDefaultJwtAccessTokens: () => ({
         sign: jest.fn(),
         verify: (...args: unknown[]) => mockVerify(...args),
     }),
 }));
-
 function buildAuthorizerEvent(params: {
     authorization?: string;
 }): APIGatewayRequestAuthorizerEventV2 {
@@ -45,57 +41,43 @@ function buildAuthorizerEvent(params: {
         },
     } as APIGatewayRequestAuthorizerEventV2;
 }
-
 describe("authorizer", () => {
     beforeEach(() => {
         mockVerify.mockReset();
     });
-
     it("denies when Authorization header is missing", async () => {
         const result = await handler(buildAuthorizerEvent({}));
         expect(result.isAuthorized).toBe(false);
         expect(mockVerify).not.toHaveBeenCalled();
     });
-
     it("denies when Authorization header does not start with Bearer", async () => {
-        const result = await handler(
-            buildAuthorizerEvent({ authorization: "Basic abc" })
-        );
+        const result = await handler(buildAuthorizerEvent({ authorization: "Basic abc" }));
         expect(result.isAuthorized).toBe(false);
         expect(mockVerify).not.toHaveBeenCalled();
     });
-
     it("denies when JWT verify rejects", async () => {
         mockVerify.mockResolvedValue({ ok: false });
-        const result = await handler(
-            buildAuthorizerEvent({ authorization: "Bearer bad-token" })
-        );
+        const result = await handler(buildAuthorizerEvent({ authorization: "Bearer bad-token" }));
         expect(result.isAuthorized).toBe(false);
     });
-
     it("allows and exposes userId/role in context when JWT verifies", async () => {
         mockVerify.mockResolvedValue({
             ok: true,
             payload: { userId: "u-1", role: "ORGANIZER" },
         });
-        const result = await handler(
-            buildAuthorizerEvent({ authorization: "Bearer good-token" })
-        );
+        const result = await handler(buildAuthorizerEvent({ authorization: "Bearer good-token" }));
         expect(result.isAuthorized).toBe(true);
         expect(result.context).toEqual({
             userId: "u-1",
             role: "ORGANIZER",
         });
     });
-
     it("accepts case-insensitive Bearer prefix", async () => {
         mockVerify.mockResolvedValue({
             ok: true,
             payload: { userId: "u-1", role: "CUSTOMER" },
         });
-        const result = await handler(
-            buildAuthorizerEvent({ authorization: "bearer good-token" })
-        );
+        const result = await handler(buildAuthorizerEvent({ authorization: "bearer good-token" }));
         expect(result.isAuthorized).toBe(true);
     });
 });

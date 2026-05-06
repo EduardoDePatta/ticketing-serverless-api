@@ -1,23 +1,11 @@
-import type {
-    APIGatewayEventRequestContextV2,
-    APIGatewayProxyEventV2,
-} from "aws-lambda";
-
-export type BuildHttpApiV2EventOptions = Partial<
-    Omit<APIGatewayProxyEventV2, "requestContext" | "version">
-> & {
-    requestContext?: Partial<
-        Omit<APIGatewayEventRequestContextV2, "http">
-    > & {
+import type { APIGatewayEventRequestContextV2, APIGatewayProxyEventV2, } from "aws-lambda";
+export type BuildHttpApiV2EventOptions = Partial<Omit<APIGatewayProxyEventV2, "requestContext" | "version">> & {
+    requestContext?: Partial<Omit<APIGatewayEventRequestContextV2, "http">> & {
         http?: Partial<APIGatewayEventRequestContextV2["http"]>;
     };
 };
-
-export function buildHttpApiV2Event(
-    partial: BuildHttpApiV2EventOptions = {}
-): APIGatewayProxyEventV2 {
+export function buildHttpApiV2Event(partial: BuildHttpApiV2EventOptions = {}): APIGatewayProxyEventV2 {
     const rc = partial.requestContext ?? {};
-
     return {
         version: "2.0",
         routeKey: partial.routeKey ?? "GET /",

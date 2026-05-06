@@ -1,18 +1,14 @@
 import { z } from "zod";
-
 const optionalTrimmedString = z
     .string()
     .trim()
     .min(1)
     .optional()
-    .or(
-        z
-            .string()
-            .trim()
-            .max(0)
-            .transform(() => undefined)
-    );
-
+    .or(z
+    .string()
+    .trim()
+    .max(0)
+    .transform(() => undefined));
 export const billingAddressSchema = z.strictObject({
     line1: z
         .string()
@@ -41,5 +37,4 @@ export const billingAddressSchema = z.strictObject({
         .toUpperCase()
         .regex(/^[A-Z]{2}$/u, "Country must be an ISO 3166-1 alpha-2 code"),
 });
-
 export type BillingAddressInput = z.output<typeof billingAddressSchema>;

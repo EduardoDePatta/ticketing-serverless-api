@@ -1,7 +1,5 @@
 import { z } from "zod";
-
 import { ROLES } from "../../entities/user";
-
 export const registerInputSchema = z.strictObject({
     email: z
         .string()

@@ -1,17 +1,11 @@
 import type { APIGatewayProxyStructuredResultV2 } from "aws-lambda";
-
-import type {
-    PaidOrderResult,
-    PaymentServiceResult,
-} from "../services/paymentService";
+import type { PaidOrderResult, PaymentServiceResult, } from "../services/paymentService";
 import { apiErrorResponse, apiSuccessResponse } from "./http/apiResponse";
-
 export function mapPaymentServiceResult(params: {
     result: PaymentServiceResult<PaidOrderResult>;
     traceId: string;
 }): APIGatewayProxyStructuredResultV2 {
     const { result, traceId } = params;
-
     if (result.success) {
         return apiSuccessResponse({
             statusCode: 200,
@@ -22,7 +16,6 @@ export function mapPaymentServiceResult(params: {
             },
         }) as APIGatewayProxyStructuredResultV2;
     }
-
     switch (result.failure.kind) {
         case "validation":
             return apiErrorResponse({
@@ -55,10 +48,9 @@ export function mapPaymentServiceResult(params: {
         case "charge_failed":
             return apiErrorResponse({
                 statusCode: 402,
-                message:
-                    result.failure.outcome === "declined"
-                        ? "Payment was declined by the card issuer"
-                        : "Payment processing error",
+                message: result.failure.outcome === "declined"
+                    ? "Payment was declined by the card issuer"
+                    : "Payment processing error",
                 data: {
                     outcome: result.failure.outcome,
                     reason: result.failure.reason ?? null,

@@ -1,17 +1,13 @@
 import type { APIGatewayProxyResultV2 } from "aws-lambda";
-
 import type { AuthServiceResult } from "../services/authService";
 import { apiErrorResponse, apiSuccessResponse } from "./http/apiResponse";
-
 export type AuthSuccessSemantics = "created" | "ok" | "no_content";
-
 export function mapAuthServiceResult<T>(params: {
     result: AuthServiceResult<T>;
     success: AuthSuccessSemantics;
     traceId: string;
 }): APIGatewayProxyResultV2 {
     const { result, success, traceId } = params;
-
     if (result.success) {
         if (success === "no_content") {
             return apiSuccessResponse({
@@ -28,7 +24,6 @@ export function mapAuthServiceResult<T>(params: {
             data: result.value as T,
         });
     }
-
     const failure = result.failure;
     switch (failure.kind) {
         case "validation":

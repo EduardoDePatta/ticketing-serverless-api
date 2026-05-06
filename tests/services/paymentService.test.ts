@@ -1,13 +1,8 @@
 import type { Order } from "../../src/entities/order";
 import type { OrderRepository } from "../../src/repositories/orderRepository";
 import type { PaymentRepository } from "../../src/repositories/paymentRepository";
-import type {
-    PaymentChargeInput,
-    PaymentOutcome,
-    PaymentProvider,
-} from "../../src/services/payment/paymentProvider";
+import type { PaymentChargeInput, PaymentOutcome, PaymentProvider, } from "../../src/services/payment/paymentProvider";
 import { PaymentService } from "../../src/services/paymentService";
-
 describe("PaymentService", () => {
     const orderFindById = jest.fn();
     const orderMarkPaid = jest.fn();
@@ -15,22 +10,17 @@ describe("PaymentService", () => {
     const providerCharge = jest.fn();
     const idGenerator = jest.fn();
     const now = jest.fn();
-
     const orderRepository = {
         findById: orderFindById,
         markPaid: orderMarkPaid,
     } as unknown as OrderRepository;
-
     const paymentRepository = {
         create: paymentCreate,
     } as unknown as PaymentRepository;
-
     const provider: PaymentProvider = {
         name: "simulator-card",
-        charge: (input: PaymentChargeInput) =>
-            providerCharge(input) as Promise<PaymentOutcome>,
+        charge: (input: PaymentChargeInput) => providerCharge(input) as Promise<PaymentOutcome>,
     };
-
     function makeService(): PaymentService {
         return new PaymentService({
             orderRepository,
@@ -40,7 +30,6 @@ describe("PaymentService", () => {
             now,
         });
     }
-
     function makeOrder(overrides: Partial<Order> = {}): Order {
         return {
             id: "ord-1",
@@ -56,7 +45,6 @@ describe("PaymentService", () => {
             ...overrides,
         };
     }
-
     function validInput() {
         return {
             card: {
@@ -75,7 +63,6 @@ describe("PaymentService", () => {
             },
         };
     }
-
     beforeEach(() => {
         orderFindById.mockReset();
         orderMarkPaid.mockReset();
@@ -86,7 +73,6 @@ describe("PaymentService", () => {
         now.mockReset();
         now.mockReturnValue(new Date("2026-01-01T00:00:00.000Z"));
     });
-
     it("returns validation when input is bad", async () => {
         const r = await makeService().payOrder({
             orderId: "ord-1",
@@ -94,11 +80,11 @@ describe("PaymentService", () => {
             input: {},
         });
         expect(r.success).toBe(false);
-        if (!r.success) expect(r.failure.kind).toBe("validation");
+        if (!r.success)
+            expect(r.failure.kind).toBe("validation");
         expect(orderFindById).not.toHaveBeenCalled();
         expect(providerCharge).not.toHaveBeenCalled();
     });
-
     it("returns order_not_found when order is missing", async () => {
         orderFindById.mockResolvedValue(null);
         const r = await makeService().payOrder({
@@ -107,10 +93,10 @@ describe("PaymentService", () => {
             input: validInput(),
         });
         expect(r.success).toBe(false);
-        if (!r.success) expect(r.failure.kind).toBe("order_not_found");
+        if (!r.success)
+            expect(r.failure.kind).toBe("order_not_found");
         expect(providerCharge).not.toHaveBeenCalled();
     });
-
     it("returns order_not_found when caller does not own the order", async () => {
         orderFindById.mockResolvedValue(makeOrder({ customerId: "someone" }));
         const r = await makeService().payOrder({
@@ -119,9 +105,9 @@ describe("PaymentService", () => {
             input: validInput(),
         });
         expect(r.success).toBe(false);
-        if (!r.success) expect(r.failure.kind).toBe("order_not_found");
+        if (!r.success)
+            expect(r.failure.kind).toBe("order_not_found");
     });
-
     it("returns invalid_state when order is not PENDING", async () => {
         orderFindById.mockResolvedValue(makeOrder({ status: "PAID" }));
         const r = await makeService().payOrder({
@@ -137,20 +123,17 @@ describe("PaymentService", () => {
             }
         }
     });
-
     it("returns expired when expiresAt is in the past", async () => {
-        orderFindById.mockResolvedValue(
-            makeOrder({ expiresAt: "2020-01-01T00:00:00.000Z" })
-        );
+        orderFindById.mockResolvedValue(makeOrder({ expiresAt: "2020-01-01T00:00:00.000Z" }));
         const r = await makeService().payOrder({
             orderId: "ord-1",
             customerId: "u-cust",
             input: validInput(),
         });
         expect(r.success).toBe(false);
-        if (!r.success) expect(r.failure.kind).toBe("expired");
+        if (!r.success)
+            expect(r.failure.kind).toBe("expired");
     });
-
     it("persists a declined payment, returns charge_failed and does not mark the order as paid", async () => {
         orderFindById.mockResolvedValue(makeOrder());
         providerCharge.mockResolvedValue({
@@ -160,13 +143,11 @@ describe("PaymentService", () => {
             reason: "card_declined",
         });
         paymentCreate.mockImplementation(async (p) => p);
-
         const r = await makeService().payOrder({
             orderId: "ord-1",
             customerId: "u-cust",
             input: validInput(),
         });
-
         expect(r.success).toBe(false);
         if (!r.success) {
             expect(r.failure.kind).toBe("charge_failed");
@@ -181,7 +162,6 @@ describe("PaymentService", () => {
         expect(persistedPayment.last4).toBe("0002");
         expect(orderMarkPaid).not.toHaveBeenCalled();
     });
-
     it("on success persists payment, marks order paid and returns the updated order with payment", async () => {
         const order = makeOrder();
         orderFindById.mockResolvedValue(order);
@@ -192,13 +172,11 @@ describe("PaymentService", () => {
         });
         paymentCreate.mockImplementation(async (p) => p);
         orderMarkPaid.mockResolvedValue(true);
-
         const r = await makeService().payOrder({
             orderId: "ord-1",
             customerId: "u-cust",
             input: validInput(),
         });
-
         expect(r.success).toBe(true);
         if (r.success) {
             expect(r.value.order.status).toBe("PAID");
@@ -207,14 +185,12 @@ describe("PaymentService", () => {
             expect(r.value.payment.last4).toBe("4242");
             expect(r.value.payment.status).toBe("succeeded");
         }
-
         expect(orderMarkPaid).toHaveBeenCalledWith({
             id: "ord-1",
             paymentId: "pay-1",
             now: new Date("2026-01-01T00:00:00.000Z"),
         });
     });
-
     it("rolls back to invalid_state when markPaid loses the race against the cleanup", async () => {
         orderFindById.mockResolvedValue(makeOrder());
         providerCharge.mockResolvedValue({
@@ -224,14 +200,13 @@ describe("PaymentService", () => {
         });
         paymentCreate.mockImplementation(async (p) => p);
         orderMarkPaid.mockResolvedValue(false);
-
         const r = await makeService().payOrder({
             orderId: "ord-1",
             customerId: "u-cust",
             input: validInput(),
         });
-
         expect(r.success).toBe(false);
-        if (!r.success) expect(r.failure.kind).toBe("invalid_state");
+        if (!r.success)
+            expect(r.failure.kind).toBe("invalid_state");
     });
 });

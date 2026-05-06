@@ -2,9 +2,7 @@ import { handler } from "../../src/functions/refresh";
 import { buildHttpApiV2Event } from "../helpers/httpApiV2Event";
 import { invokeHttpHandler } from "../helpers/invokeHttpHandler";
 import { parseLambdaJsonBody } from "../helpers/parseLambdaBody";
-
 const mockRefresh = jest.fn();
-
 jest.mock("../../src/shared/auth/authServiceFactory", () => ({
     getDefaultAuthService: () => ({
         register: jest.fn(),
@@ -14,12 +12,10 @@ jest.mock("../../src/shared/auth/authServiceFactory", () => ({
         getById: jest.fn(),
     }),
 }));
-
 describe("refresh handler", () => {
     beforeEach(() => {
         mockRefresh.mockReset();
     });
-
     it("returns 200 with new tokens when refresh succeeds", async () => {
         mockRefresh.mockResolvedValue({
             success: true,
@@ -46,11 +42,13 @@ describe("refresh handler", () => {
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(200);
         const body = parseLambdaJsonBody(result) as {
-            data: { accessToken: string; refreshToken: string };
+            data: {
+                accessToken: string;
+                refreshToken: string;
+            };
         };
         expect(body.data.accessToken).toBe("new-access-jwt");
     });
-
     it("returns 401 when refresh token is invalid", async () => {
         mockRefresh.mockResolvedValue({
             success: false,
@@ -63,10 +61,11 @@ describe("refresh handler", () => {
         });
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(401);
-        const body = parseLambdaJsonBody(result) as { message: string };
+        const body = parseLambdaJsonBody(result) as {
+            message: string;
+        };
         expect(body.message).toBe("Invalid refresh token");
     });
-
     it("returns 401 with reuse-detected message when family is compromised", async () => {
         mockRefresh.mockResolvedValue({
             success: false,
@@ -79,7 +78,9 @@ describe("refresh handler", () => {
         });
         const result = await invokeHttpHandler(handler, event);
         expect(result.statusCode).toBe(401);
-        const body = parseLambdaJsonBody(result) as { message: string };
+        const body = parseLambdaJsonBody(result) as {
+            message: string;
+        };
         expect(body.message).toBe("Refresh token reuse detected");
     });
 });

@@ -1,13 +1,11 @@
 import { JwtAccessTokens } from "../../../src/shared/auth/jwtAccessTokens";
 import type { SecretsProvider } from "../../../src/shared/auth/secretsProvider";
-
 function makeSecretsProvider(jwtKey: string): SecretsProvider {
     return {
         getPepper: jest.fn(async () => "unused"),
         getJwtSigningKey: jest.fn(async () => jwtKey),
     };
 }
-
 describe("JwtAccessTokens", () => {
     it("signs a token and verifies it round trip with claims", async () => {
         const tokens = new JwtAccessTokens({
@@ -21,10 +19,7 @@ describe("JwtAccessTokens", () => {
             role: "CUSTOMER",
         });
         expect(typeof signed.token).toBe("string");
-        expect(signed.expiresAtEpochSeconds).toBeGreaterThan(
-            Math.floor(Date.now() / 1000)
-        );
-
+        expect(signed.expiresAtEpochSeconds).toBeGreaterThan(Math.floor(Date.now() / 1000));
         const verified = await tokens.verify({ token: signed.token });
         expect(verified.ok).toBe(true);
         if (verified.ok) {
@@ -32,7 +27,6 @@ describe("JwtAccessTokens", () => {
             expect(verified.payload.role).toBe("CUSTOMER");
         }
     });
-
     it("returns ok=false when key changes between sign and verify", async () => {
         const signer = new JwtAccessTokens({
             secretsProvider: makeSecretsProvider("kA"),
@@ -53,7 +47,6 @@ describe("JwtAccessTokens", () => {
         const result = await verifier.verify({ token: signed.token });
         expect(result.ok).toBe(false);
     });
-
     it("returns ok=false when token is malformed", async () => {
         const tokens = new JwtAccessTokens({
             secretsProvider: makeSecretsProvider("k"),
@@ -64,7 +57,6 @@ describe("JwtAccessTokens", () => {
         const result = await tokens.verify({ token: "not-a-jwt" });
         expect(result.ok).toBe(false);
     });
-
     it("returns ok=false when token is expired", async () => {
         const tokens = new JwtAccessTokens({
             secretsProvider: makeSecretsProvider("k"),
@@ -77,7 +69,6 @@ describe("JwtAccessTokens", () => {
             userId: "u-1",
             role: "CUSTOMER",
         });
-
         const verifierLater = new JwtAccessTokens({
             secretsProvider: makeSecretsProvider("k"),
             issuer: "i",
@@ -88,7 +79,6 @@ describe("JwtAccessTokens", () => {
         const result = await verifierLater.verify({ token: signed.token });
         expect(result.ok).toBe(false);
     });
-
     it("rejects tokens with the wrong issuer", async () => {
         const signer = new JwtAccessTokens({
             secretsProvider: makeSecretsProvider("k"),

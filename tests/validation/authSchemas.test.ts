@@ -1,9 +1,4 @@
-import {
-    loginInputSchema,
-    refreshInputSchema,
-    registerInputSchema,
-} from "../../src/validation/auth";
-
+import { loginInputSchema, refreshInputSchema, registerInputSchema, } from "../../src/validation/auth";
 describe("registerInputSchema", () => {
     const validInput = {
         email: "user@example.com",
@@ -11,7 +6,6 @@ describe("registerInputSchema", () => {
         name: "Alice",
         role: "CUSTOMER",
     };
-
     it("accepts a fully valid input", () => {
         const r = registerInputSchema.safeParse(validInput);
         expect(r.success).toBe(true);
@@ -19,7 +13,6 @@ describe("registerInputSchema", () => {
             expect(r.data.email).toBe("user@example.com");
         }
     });
-
     it("lowercases the email", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -30,7 +23,6 @@ describe("registerInputSchema", () => {
             expect(r.data.email).toBe("user@example.com");
         }
     });
-
     it("rejects invalid email format", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -38,7 +30,6 @@ describe("registerInputSchema", () => {
         });
         expect(r.success).toBe(false);
     });
-
     it("rejects passwords shorter than 12 characters", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -46,7 +37,6 @@ describe("registerInputSchema", () => {
         });
         expect(r.success).toBe(false);
     });
-
     it("rejects passwords longer than 128 characters", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -54,7 +44,6 @@ describe("registerInputSchema", () => {
         });
         expect(r.success).toBe(false);
     });
-
     it("rejects unknown roles", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -62,7 +51,6 @@ describe("registerInputSchema", () => {
         });
         expect(r.success).toBe(false);
     });
-
     it("rejects empty name", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -70,7 +58,6 @@ describe("registerInputSchema", () => {
         });
         expect(r.success).toBe(false);
     });
-
     it("trims the name", () => {
         const r = registerInputSchema.safeParse({
             ...validInput,
@@ -82,13 +69,11 @@ describe("registerInputSchema", () => {
         }
     });
 });
-
 describe("loginInputSchema", () => {
     it("requires email and password", () => {
         const r = loginInputSchema.safeParse({});
         expect(r.success).toBe(false);
     });
-
     it("lowercases email", () => {
         const r = loginInputSchema.safeParse({
             email: "USER@Example.COM",
@@ -99,7 +84,6 @@ describe("loginInputSchema", () => {
             expect(r.data.email).toBe("user@example.com");
         }
     });
-
     it("rejects empty password", () => {
         const r = loginInputSchema.safeParse({
             email: "user@example.com",
@@ -108,18 +92,15 @@ describe("loginInputSchema", () => {
         expect(r.success).toBe(false);
     });
 });
-
 describe("refreshInputSchema", () => {
     it("requires refreshToken", () => {
         const r = refreshInputSchema.safeParse({});
         expect(r.success).toBe(false);
     });
-
     it("rejects empty refreshToken", () => {
         const r = refreshInputSchema.safeParse({ refreshToken: "  " });
         expect(r.success).toBe(false);
     });
-
     it("accepts a non-empty token string", () => {
         const r = refreshInputSchema.safeParse({
             refreshToken: "id.secret",
