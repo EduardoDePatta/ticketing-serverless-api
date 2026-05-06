@@ -1,0 +1,25 @@
+---
+description: Single-object parameters; no any; TypeScript strict
+alwaysApply: true
+---
+
+# TypeScript in this repository
+
+## Parameters
+
+If a **function**, **method**, or **constructor** has **more than one parameter**, accept a **single typed object** (name the type or use `params` with destructuring).
+
+```typescript
+// Bad
+function save(id: string, data: Payload): void;
+
+// Good
+function save(params: { id: string; data: Payload }): void;
+```
+
+A lone single parameter may stay positional (e.g. `get(id: string)`). Optional positional parameters still count: `fn(a, b?)` breaks this rule — use `fn(params: { a: A; b?: B })`.
+
+## Typing
+
+- **Never** use `any`. Prefer explicit types, `unknown` with narrowing, or generics.
+- Keep the project **strict** (`strict: true` in `tsconfig`); do not turn off checks for convenience.

@@ -1,0 +1,19 @@
+---
+description: Keep Postman collection in sync when HTTP API surface changes
+alwaysApply: true
+---
+
+# Postman collection
+
+The importable collection lives at [postman/ticketing-api.postman_collection.json](postman/ticketing-api.postman_collection.json).
+
+Whenever you **add, remove, or change** HTTP behavior exposed to clients, update that file in the **same task** (same PR / same edit pass), including:
+
+- New or updated **routes** (method + path), matching [serverless/functions/](serverless/functions/) `httpApi` config and [serverless.ts](serverless.ts) registrations.
+- **Request bodies** and **headers** (e.g. `Content-Type: application/json`) aligned with handlers under [src/functions/](src/functions/).
+- **Collection variables** if the default `baseUrl` or path/query conventions change; keep `baseUrl` and `eventId` (or equivalent) for templated URLs like `{{baseUrl}}/events/{{eventId}}`.
+- **Folder structure** in the collection should stay readable (e.g. group by domain: Events, Orders).
+
+If an endpoint is **removed** from Serverless/handlers, remove the corresponding item from the collection.
+
+Do **not** leave the Postman file outdated after shipping API changes.
