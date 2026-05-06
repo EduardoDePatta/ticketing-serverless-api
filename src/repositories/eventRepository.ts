@@ -1,3 +1,4 @@
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { TicketingEvent } from "../entities/event";
@@ -76,5 +77,69 @@ export class EventRepository {
         await this.store.delete(id);
 
         return true;
+    }
+
+    /**
+     * Adds `quantity` back to `availableTickets`. Used to roll back a reservation
+     * when an order is expired or cancelled. Idempotency must be enforced by the
+     * caller (e.g. by only invoking after a successful PENDING -> EXPIRED
+     * transition).
+     */
+    async incrementAvailableTickets(params: {
+        id: string;
+        quantity: number;
+    }): Promise<void> {
+        const { id, quantity } = params;
+        await dynamoDb.send(
+            new UpdateCommand({
+                TableName: this.tableName,
+                Key: { id },
+                UpdateExpression:
+                    "SET availableTickets = availableTickets + :qty, updatedAt = :now",
+                ConditionExpression: "attribute_exists(id)",
+                ExpressionAttributeValues: {
+                    ":qty": quantity,
+                    ":now": new Date().toISOString(),
+                },
+            })
+        );
+    }
+
+    /**
+     * Atomically decrements `availableTickets` by `quantity` only if there is
+     * enough inventory and the event is ACTIVE. Returns `true` on success and
+     * `false` when the conditional update fails (sold out / cancelled / missing).
+     */
+    async decrementAvailableTickets(params: {
+        id: string;
+        quantity: number;
+    }): Promise<boolean> {
+        const { id, quantity } = params;
+        try {
+            await dynamoDb.send(
+                new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: { id },
+                    UpdateExpression:
+                        "SET availableTickets = availableTickets - :qty, updatedAt = :now",
+                    ConditionExpression:
+                        "attribute_exists(id) AND #status = :active AND availableTickets >= :qty",
+                    ExpressionAttributeNames: {
+                        "#status": "status",
+                    },
+                    ExpressionAttributeValues: {
+                        ":qty": quantity,
+                        ":active": "ACTIVE",
+                        ":now": new Date().toISOString(),
+                    },
+                })
+            );
+            return true;
+        } catch (err) {
+            if (err instanceof ConditionalCheckFailedException) {
+                return false;
+            }
+            throw err;
+        }
     }
 }
