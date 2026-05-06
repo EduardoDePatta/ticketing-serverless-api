@@ -5,6 +5,9 @@ export const createEventFunction = {
             httpApi: {
                 path: "/events",
                 method: "post",
+                authorizer: {
+                    name: "jwtAuthorizer",
+                },
             },
         },
     ],
@@ -41,6 +44,9 @@ export const updateEventFunction = {
             httpApi: {
                 path: "/events/{id}",
                 method: "put",
+                authorizer: {
+                    name: "jwtAuthorizer",
+                },
             },
         },
     ],
@@ -53,6 +59,9 @@ export const deleteEventFunction = {
             httpApi: {
                 path: "/events/{id}",
                 method: "delete",
+                authorizer: {
+                    name: "jwtAuthorizer",
+                },
             },
         },
     ],
