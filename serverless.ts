@@ -1,5 +1,12 @@
 import type { AWS } from "@serverless/typescript";
 
+import {
+    createEventFunction,
+    deleteEventFunction,
+    getEventFunction,
+    listEventsFunction,
+    updateEventFunction,
+} from "./serverless/functions/events";
 import { healthFunction } from "./serverless/functions/health";
 import { dynamoDbResources } from "./serverless/resources/dynamodb";
 import { iamRoleStatements } from "./serverless/iam/statements";
@@ -27,6 +34,11 @@ const serverlessConfiguration: AWS = {
     },
     functions: {
         health: healthFunction,
+        createEvent: createEventFunction,
+        listEvents: listEventsFunction,
+        getEvent: getEventFunction,
+        updateEvent: updateEventFunction,
+        deleteEvent: deleteEventFunction,
     },
     resources: {
         Resources: {
