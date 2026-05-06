@@ -1,0 +1,27 @@
+---
+description: Write tests before implementing new code (TDD)
+alwaysApply: true
+---
+
+# Test-first (TDD)
+
+When **adding new behavior** (functions, handlers, validation, services, integrations), follow this order:
+
+1. **Tests** — create or extend files under `tests/` (unit tests for validation/shared; handler tests with mocks consistent with the rest of the project). Tests should **fail** until the implementation exists (or fail for the right reason if stubs already exist).
+2. **Implementation** — code under `src/` (or `serverless/`) that makes the tests pass.
+3. **Refactor** — only after green, simplify without changing covered behavior.
+
+## Scope
+
+- New **endpoints** / Lambdas: handler tests **before** finalizing logic and routes.
+- New **validation** or schemas: tests under `tests/validation/` or `tests/shared/` **before** use in production paths.
+- Do **not** add new product behavior in code only without matching tests, unless the user explicitly says otherwise.
+
+## Exceptions
+
+- Purely mechanical changes (rename without behavior change) may update tests in parallel.
+- Config/infra with no testable logic in this repo may ship without automated tests.
+
+## Verification
+
+Before considering the task done: `npm test` passes.

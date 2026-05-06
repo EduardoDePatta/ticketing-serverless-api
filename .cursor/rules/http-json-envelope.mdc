@@ -1,0 +1,20 @@
+---
+description: Consistent JSON success/error response bodies and headers
+globs: src/shared/http/**/*.ts,src/shared/mapEventServiceResult.ts
+alwaysApply: false
+---
+
+# HTTP JSON envelope (`src/shared/http`)
+
+## Responses
+
+- Build responses with **`apiSuccessResponse`** and **`apiErrorResponse`** from [`apiResponse.ts`](src/shared/http/apiResponse.ts).
+- Success body shape: `{ status, message, data }` where `status` mirrors the HTTP status code.
+- Error body shape: `{ status, message, data, traceId }` — **every client-facing error** must include **`traceId`** (from `getHttpApiTraceId`).
+- Always set **`content-type: application/json`** via those helpers (do not hand-roll headers unless extending the helper).
+
+## Parsing
+
+- Use **`parseJsonBody`** / **`JsonObjectBodyValidation`** for request bodies; surface parse failures as **`apiErrorResponse`** with status **400** and the shared messages from that module.
+
+When adding new response helpers, keep the same field names so clients and tests stay stable.

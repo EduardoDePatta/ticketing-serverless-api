@@ -1,0 +1,27 @@
+---
+description: Thin HTTP Lambda handlers — trace, body parse, service, map to HTTP
+globs: src/functions/**/*.ts
+alwaysApply: false
+---
+
+# Lambda HTTP handlers (`src/functions`)
+
+Handlers should stay **thin**: wire HTTP concerns, delegate domain work to services.
+
+## Required flow (when applicable)
+
+1. **`getHttpApiTraceId({ event })`** — use API Gateway `requestId` for error correlation; do not invent ad-hoc IDs except via that helper.
+2. **JSON body** — for methods with a body, use **`JsonObjectBodyValidation.parseOrBadRequest`** with `rawBody: event.body` and `traceId`. If `!body.ok`, return `body.response` immediately.
+3. **Path params** — read from `event.pathParameters` in the handler only for routing identity (e.g. `id`), then pass to the service.
+4. **Service call** — `const result = await eventService.<method>(...)` using a **module-level** `const eventService = new EventService()` (keeps handler small; tests mock `EventService`).
+5. **HTTP mapping** — return **`mapEventServiceResult({ result, successStatus, traceId })`** for event CRUD-style endpoints so status codes and envelopes stay consistent. Pick `successStatus` to match semantics (e.g. `201` create, `200` read/update/delete).
+
+## Avoid
+
+- Business rules, Zod parsing, or DynamoDB calls directly in the handler.
+- Raw `JSON.parse` on `event.body` outside shared helpers.
+- Inconsistent error shapes (always go through `mapEventServiceResult` + `apiErrorResponse` for this domain).
+
+## Types
+
+Export **`handler`** as **`APIGatewayProxyHandlerV2`** from `aws-lambda`.

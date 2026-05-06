@@ -1,0 +1,15 @@
+---
+description: Repositories wrap DynamoDB; table name from env; shared low-level helpers
+globs: src/repositories/**/*.ts
+alwaysApply: false
+---
+
+# Repositories (`src/repositories`)
+
+- One repository per **aggregate/table** (e.g. `EventRepository` for ticketing events).
+- Resolve configuration with **`requireEnv`** (see [`env.ts`](src/shared/env.ts)) for **`EVENTS_TABLE_NAME`** (or equivalent); do not hardcode table names.
+- Reuse shared primitives: **`SingleKeyDocumentRepository`**, **`buildSetUpdateExpression`**, **`dynamoDb`** client — avoid duplicating low-level DynamoDB patterns.
+- Return **`null`** when an item is missing (**lookup/update/delete** semantics); let the **service** turn that into **`not_found`** (or similar) in the result union.
+- **`create`** should enforce idempotence expectations with condition expressions (e.g. `attribute_not_exists(id)`) where appropriate.
+
+When adding a new table, add env wiring in **`serverless.ts`**, IAM in **`serverless/iam/statements.ts`**, and a resource module under **`serverless/resources/`**.

@@ -1,0 +1,25 @@
+---
+description: Split Serverless config (functions, IAM, resources); wire in serverless.ts
+globs: serverless.ts,serverless/**/*.ts
+alwaysApply: false
+---
+
+# Serverless configuration
+
+Applies when editing **`serverless.ts`** or anything under **`serverless/`** (functions, IAM, resources).
+
+## Layout
+
+- **`serverless.ts`** — single exported **`AWS`** config: `provider`, `functions`, `resources`, `build`. Import function definitions from **`serverless/functions/`**, IAM from **`serverless/iam/statements.ts`**, CloudFormation chunks from **`serverless/resources/`**.
+- **`serverless/functions/*.ts`** — export one object per Lambda (e.g. `createEventFunction`) with **`handler`** pointing at **`src/functions/<file>.handler`** and **`httpApi`** `path` / `method` matching the public API.
+- **`serverless/iam/statements.ts`** — provider role **`Effect`/`Action`/`Resource`** arrays; reference table ARNs via **`Fn::GetAtt`** where resources are defined in-repo.
+
+## Environment
+
+- **`provider.environment`** holds stage-derived names (e.g. `EVENTS_TABLE_NAME: "${self:service}-${self:provider.stage}-events"`). Application code reads via **`requireEnv`**, not scattered `process.env` literals.
+
+## When the API surface changes
+
+- Register new functions in **`serverless.ts`** `functions` map.
+- Update IAM/resources when new AWS permissions or infrastructure are required.
+- Keep **Postman** in sync (see **postman-collection-sync** rule).

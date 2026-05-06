@@ -1,0 +1,14 @@
+---
+description: Zod schemas by domain; shared pieces; field errors via zodErrorToFieldErrors
+globs: src/validation/**/*.ts
+alwaysApply: false
+---
+
+# Validation (`src/validation`)
+
+- Colocate schemas under **`src/validation/<domain>/`** (e.g. `event/`). Export public schemas from **`index.ts`** for clean imports in services.
+- Prefer **small reusable helpers** in a `shared/` subfolder (e.g. optional trimmed string, currency) and compose them in `create*InputSchema` / `update*InputSchema`.
+- Parse with **`safeParse`** in services; convert failures with **`zodErrorToFieldErrors`** so HTTP layer gets a **`Record<string, string>`**.
+- Param schemas (e.g. **`eventIdParamSchema`**) live next to body schemas; services own parsing **`pathParameters`**-derived values when validating IDs.
+
+Do not parse or validate request bodies in Zod inside handlers — keep handlers thin (see lambda-http-handlers rule).

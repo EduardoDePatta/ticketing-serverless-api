@@ -1,0 +1,27 @@
+---
+description: Services return discriminated results; validation and defaults in the service
+globs: src/services/**/*.ts
+alwaysApply: false
+---
+
+# Service layer (`src/services`)
+
+## Result type
+
+- Expose operations as **`Promise<EventServiceResult<T>>`** (or the same **discriminated union** pattern for another domain):  
+  **`{ success: true; value: T } | { success: false; failure: ... }`**.
+- Do **not** rely on thrown exceptions for expected failures (**validation**, **not found**); map them into **`failure`**.
+- Reserve exceptions for truly unexpected errors (bugs, infrastructure); handlers can still map those later if you add a global wrapper.
+
+## Validation
+
+- Use **Zod** `safeParse` on `unknown` inputs inside the service.
+- On validation failure, return **`failure: { kind: "validation", fields: zodErrorToFieldErrors({ error }) }`** — keep field messages user-oriented strings.
+
+## Persistence
+
+- Inject **`Repository`** via an **optional constructor param** with a default (`params?.repository ?? new EventRepository()`) so tests can substitute fakes without changing handler code.
+
+## Domain defaults
+
+- Apply defaults (e.g. currency, status, timestamps) in the **service** when creating/updating entities, not in handlers or repositories.
