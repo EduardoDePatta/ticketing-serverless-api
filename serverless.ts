@@ -17,6 +17,7 @@ const serverlessConfiguration: AWS = {
         timeout: 10,
         environment: {
             STAGE: "${self:provider.stage}",
+            EVENTS_TABLE_NAME: "${self:service}-${self:provider.stage}-events",
         },
         iam: {
             role: {
