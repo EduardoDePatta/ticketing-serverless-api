@@ -1,11 +1,14 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 
+import { apiSuccessResponse } from "../shared/http/apiResponse";
+
 export const handler: APIGatewayProxyHandlerV2 = async () => {
-    return {
+    return apiSuccessResponse({
         statusCode: 200,
-        body: JSON.stringify({
-            message: "Ticketing API is running",
+        message: "OK",
+        data: {
+            service: "ticketing-api",
             timestamp: new Date().toISOString(),
-        }),
-    };
+        },
+    });
 };
