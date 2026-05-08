@@ -1,6 +1,6 @@
 # Ticketing Serverless API
 
-API HTTP para **eventos** e **pedidos de ingressos**, rodando na AWS com **Lambda**, **API Gateway HTTP API** e **DynamoDB**. Autenticação via **JWT** (access + refresh), pagamentos exercitados por um **simulador local** (sem cobranças reais).
+HTTP API for **events** and **ticket orders**, running on AWS with **Lambda**, **API Gateway HTTP API**, and **DynamoDB**. Authentication uses **JWT** (access + refresh), and payments are exercised through a **local simulator** (no real charges).
 
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -9,29 +9,29 @@ API HTTP para **eventos** e **pedidos de ingressos**, rodando na AWS com **Lambd
 
 ---
 
-## Visão geral
+## Overview
 
-| Área        | O que faz                                                                                                                     |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Saúde**   | `GET /health` para verificação simples do serviço                                                                             |
-| **Auth**    | Registro, login, refresh, logout e perfil (`/auth/*`) com papéis `CUSTOMER` e `ORGANIZER`                                     |
-| **Eventos** | CRUD de eventos: leitura/listagem públicas; criar, atualizar e remover exigem **organizador**                                 |
-| **Pedidos** | Clientes criam pedidos, consultam e **pagam** com simulador de cartão (idempotência obrigatória nas escritas)                 |
-| **Infra**   | Tabelas DynamoDB, Secrets Manager (pepper de senha e chave de assinatura JWT), job agendado para limpeza de pedidos expirados |
+| Area       | What it does                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Health** | `GET /health` for a simple service check                                                                         |
+| **Auth**   | Register, login, refresh, logout, and profile (`/auth/*`) with `CUSTOMER` and `ORGANIZER` roles                  |
+| **Events** | Event CRUD: public read/list endpoints; create, update, and delete require **organizer**                         |
+| **Orders** | Customers create, fetch, and **pay** orders with card simulation (idempotency required for write operations)     |
+| **Infra**  | DynamoDB tables, Secrets Manager (password pepper and JWT signing key), scheduled job to clean up expired orders |
 
-Respostas JSON seguem um envelope comum: sucesso em `{ "status", "message", "data" }` (`status` numérico alinhado ao HTTP); erros incluem `traceId` para correlação com o API Gateway.
+JSON responses follow a common envelope: success returns `{ "status", "message", "data" }` (`status` is numeric and aligned with HTTP); errors include `traceId` for API Gateway correlation.
 
 ---
 
-## Pré-requisitos
+## Prerequisites
 
 - **Node.js 20+**
-- **Conta AWS** com credenciais configuradas (por exemplo `aws configure` ou variáveis de ambiente compatíveis com o SDK)
-- **Serverless Framework v4** (`npx serverless` usa o do projeto após `npm install`)
+- **AWS account** with configured credentials (for example, via `aws configure` or SDK-compatible environment variables)
+- **Serverless Framework v4** (`npx serverless` uses the project version after `npm install`)
 
 ---
 
-## Começando
+## Getting Started
 
 ```bash
 git clone https://github.com/EduardoDePatta/ticketing-serverless-api.git
@@ -39,7 +39,7 @@ cd ticketing-serverless-api
 npm install
 ```
 
-Verificação local (tipos + testes):
+Local verification (types + tests):
 
 ```bash
 npm run typecheck
@@ -48,83 +48,83 @@ npm test
 
 ---
 
-## Scripts npm
+## npm Scripts
 
-| Script                | Descrição                    |
+| Script                | Description                  |
 | --------------------- | ---------------------------- |
-| `npm test`            | Suite Jest                   |
-| `npm run test:watch`  | Jest em modo watch           |
-| `npm run typecheck`   | `tsc --noEmit` (modo strict) |
-| `npm run deploy:dev`  | Deploy com stage `dev`       |
-| `npm run deploy:prod` | Deploy com stage `prod`      |
-| `npm run remove:dev`  | Remove stack do stage `dev`  |
+| `npm test`            | Jest suite                   |
+| `npm run test:watch`  | Jest in watch mode           |
+| `npm run typecheck`   | `tsc --noEmit` (strict mode) |
+| `npm run deploy:dev`  | Deploy with `dev` stage      |
+| `npm run deploy:prod` | Deploy with `prod` stage     |
+| `npm run remove:dev`  | Remove `dev` stage stack     |
 
-O deploy provisiona Lambdas (Node 20, **arm64**), HTTP API, DynamoDB e secrets conforme `serverless.ts` e `serverless/resources/`. Após o deploy, use a URL do **HTTP API** emitida pelo CloudFormation / saída do Serverless como base das chamadas.
+Deployment provisions Lambdas (Node 20, **arm64**), HTTP API, DynamoDB, and secrets as defined in `serverless.ts` and `serverless/resources/`. After deployment, use the **HTTP API** URL emitted by CloudFormation / Serverless output as the base URL for requests.
 
 ---
 
-## Rotas HTTP
+## HTTP Routes
 
-| Método   | Caminho            | Auth                 | Notas                                                |
-| -------- | ------------------ | -------------------- | ---------------------------------------------------- |
-| `GET`    | `/health`          | —                    |                                                      |
-| `POST`   | `/auth/register`   | —                    | Corpo JSON: email, password, name, role              |
-| `POST`   | `/auth/login`      | —                    |                                                      |
-| `POST`   | `/auth/refresh`    | —                    |                                                      |
-| `POST`   | `/auth/logout`     | Bearer               |                                                      |
-| `GET`    | `/auth/me`         | Bearer               |                                                      |
-| `POST`   | `/events`          | Bearer **ORGANIZER** |                                                      |
-| `GET`    | `/events`          | —                    | Listagem pública                                     |
-| `GET`    | `/events/{id}`     | —                    |                                                      |
-| `PUT`    | `/events/{id}`     | Bearer **ORGANIZER** |                                                      |
-| `DELETE` | `/events/{id}`     | Bearer **ORGANIZER** |                                                      |
-| `POST`   | `/orders`          | Bearer **CUSTOMER**  | **Header `Idempotency-Key`** (UUID)                  |
-| `GET`    | `/orders/{id}`     | Bearer **CUSTOMER**  |                                                      |
-| `POST`   | `/orders/{id}/pay` | Bearer **CUSTOMER**  | **Header `Idempotency-Key`**; simulador de pagamento |
+| Method   | Path               | Auth                 | Notes                                           |
+| -------- | ------------------ | -------------------- | ----------------------------------------------- |
+| `GET`    | `/health`          | —                    |                                                 |
+| `POST`   | `/auth/register`   | —                    | JSON body: email, password, name, role          |
+| `POST`   | `/auth/login`      | —                    |                                                 |
+| `POST`   | `/auth/refresh`    | —                    |                                                 |
+| `POST`   | `/auth/logout`     | Bearer               |                                                 |
+| `GET`    | `/auth/me`         | Bearer               |                                                 |
+| `POST`   | `/events`          | Bearer **ORGANIZER** |                                                 |
+| `GET`    | `/events`          | —                    | Public listing                                  |
+| `GET`    | `/events/{id}`     | —                    |                                                 |
+| `PUT`    | `/events/{id}`     | Bearer **ORGANIZER** |                                                 |
+| `DELETE` | `/events/{id}`     | Bearer **ORGANIZER** |                                                 |
+| `POST`   | `/orders`          | Bearer **CUSTOMER**  | **`Idempotency-Key` header** (UUID)             |
+| `GET`    | `/orders/{id}`     | Bearer **CUSTOMER**  |                                                 |
+| `POST`   | `/orders/{id}/pay` | Bearer **CUSTOMER**  | **`Idempotency-Key` header**; payment simulator |
 
-Rotas autenticadas usam `Authorization: Bearer <accessToken>`.
+Authenticated routes use `Authorization: Bearer <accessToken>`.
 
-### Idempotência
+### Idempotency
 
-`POST /orders` e `POST /orders/{id}/pay` **exigem** o header `Idempotency-Key`. A mesma chave com o mesmo payload devolve a resposta em cache; a mesma chave com payload diferente resulta em **422**.
+`POST /orders` and `POST /orders/{id}/pay` **require** the `Idempotency-Key` header. The same key with the same payload returns the cached response; the same key with a different payload results in **422**.
 
-### Pagamento (simulador)
+### Payment (Simulator)
 
-Não há chamadas externas de cobrança: o fluxo de pagamento é simulado. Cartões Luhn-válidos tendem a aprovar; os cartões de teste documentados na coleção Postman disparam cenários de recusa ou erro de processamento.
+There are no external charge calls: the payment flow is simulated. Luhn-valid cards tend to be approved; the test cards documented in the Postman collection trigger decline or processing-error scenarios.
 
 ---
 
 ## Postman
 
-Coleção importável em [`postman/ticketing-api.postman_collection.json`](postman/ticketing-api.postman_collection.json).
+Importable collection: [`postman/ticketing-api.postman_collection.json`](postman/ticketing-api.postman_collection.json).
 
-1. **Import** no Postman → selecionar o JSON.
-2. Ajustar a variável de coleção **`baseUrl`** para a URL do seu HTTP API após o deploy.
-3. Registrar/login preenche automaticamente `accessToken` e `refreshToken` (scripts de teste nos requests).
-
----
-
-## Estrutura do repositório (resumo)
-
-| Pasta / arquivo         | Conteúdo                                           |
-| ----------------------- | -------------------------------------------------- |
-| `serverless.ts`         | Configuração principal Serverless                  |
-| `serverless/functions/` | Registro de cada Lambda (path, método, authorizer) |
-| `serverless/resources/` | CloudFormation (DynamoDB, secrets)                 |
-| `src/functions/`        | Handlers HTTP (finos; delegam a serviços)          |
-| `src/services/`         | Regras de negócio                                  |
-| `src/repositories/`     | Acesso a dados (DynamoDB)                          |
-| `tests/`                | Testes Jest (handlers, validação, helpers)         |
+1. **Import** in Postman -> select the JSON file.
+2. Set the **`baseUrl`** collection variable to your HTTP API URL after deployment.
+3. Register/login automatically populate `accessToken` and `refreshToken` (test scripts on those requests).
 
 ---
 
-## Licença
+## Repository Structure (Summary)
 
-[ISC](package.json) — veja o campo `license` em `package.json`.
+| Folder / file           | Contents                                                |
+| ----------------------- | ------------------------------------------------------- |
+| `serverless.ts`         | Main Serverless configuration                           |
+| `serverless/functions/` | Registration for each Lambda (path, method, authorizer) |
+| `serverless/resources/` | CloudFormation (DynamoDB, secrets)                      |
+| `src/functions/`        | HTTP handlers (thin; delegate to services)              |
+| `src/services/`         | Business rules                                          |
+| `src/repositories/`     | Data access (DynamoDB)                                  |
+| `tests/`                | Jest tests (handlers, validation, helpers)              |
+
+---
+
+## License
+
+[ISC](package.json) - see the `license` field in `package.json`.
 
 ---
 
 ## Links
 
 - [Issues](https://github.com/EduardoDePatta/ticketing-serverless-api/issues)
-- [Repositório](https://github.com/EduardoDePatta/ticketing-serverless-api)
+- [Repository](https://github.com/EduardoDePatta/ticketing-serverless-api)

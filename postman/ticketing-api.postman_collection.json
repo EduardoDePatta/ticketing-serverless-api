@@ -198,7 +198,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Show de teste\",\n  \"description\": \"Opcional\",\n  \"date\": \"2026-06-15T20:00:00.000Z\",\n  \"location\": \"Lisboa\",\n  \"priceInCents\": 2500,\n  \"availableTickets\": 100,\n  \"currency\": \"EUR\"\n}"
+              "raw": "{\n  \"name\": \"Test show\",\n  \"description\": \"Optional\",\n  \"date\": \"2026-06-15T20:00:00.000Z\",\n  \"location\": \"Lisbon\",\n  \"priceInCents\": 2500,\n  \"availableTickets\": 100,\n  \"currency\": \"EUR\"\n}"
             },
             "url": "{{baseUrl}}/events"
           }
@@ -235,7 +235,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Show atualizado\",\n  \"availableTickets\": 80\n}"
+              "raw": "{\n  \"name\": \"Updated show\",\n  \"availableTickets\": 80\n}"
             },
             "url": "{{baseUrl}}/events/{{eventId}}"
           }
@@ -356,7 +356,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"card\": {\n    \"number\": \"4242 4242 4242 4242\",\n    \"holderName\": \"Alice Example\",\n    \"expiryMonth\": 12,\n    \"expiryYear\": 2030,\n    \"cvv\": \"123\"\n  },\n  \"billingAddress\": {\n    \"line1\": \"Rua Augusta 100\",\n    \"city\": \"Lisboa\",\n    \"state\": \"Lisboa\",\n    \"postalCode\": \"1100-053\",\n    \"country\": \"PT\"\n  }\n}"
+              "raw": "{\n  \"card\": {\n    \"number\": \"4242 4242 4242 4242\",\n    \"holderName\": \"Alice Example\",\n    \"expiryMonth\": 12,\n    \"expiryYear\": 2030,\n    \"cvv\": \"123\"\n  },\n  \"billingAddress\": {\n    \"line1\": \"Augusta Street 100\",\n    \"city\": \"Lisbon\",\n    \"state\": \"Lisbon\",\n    \"postalCode\": \"1100-053\",\n    \"country\": \"PT\"\n  }\n}"
             },
             "url": "{{baseUrl}}/orders/{{orderId}}/pay"
           }
