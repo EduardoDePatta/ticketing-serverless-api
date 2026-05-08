@@ -182,11 +182,20 @@ function buildServerlessDeployPolicyDocument(params: {
       {
         Sid: "SsmPublicParameters",
         Effect: "Allow",
-        Action: ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"],
+        Action: [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath",
+          "ssm:PutParameter",
+        ],
         Resource: [
           "arn:aws:ssm:us-east-1::parameter/aws/service/*",
           {
             "Fn::Sub": "arn:aws:ssm:${AWS::Region}::parameter/aws/service/*",
+          },
+          {
+            "Fn::Sub":
+              "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/serverless-framework/deployment/s3-bucket",
           },
         ],
       },
