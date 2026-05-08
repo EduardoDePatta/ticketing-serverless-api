@@ -6,6 +6,8 @@
   "scripts": {
     "deploy:dev": "serverless deploy --stage dev",
     "deploy:prod": "serverless deploy --stage prod",
+    "bootstrap:deploy": "serverless deploy --config infra/ci-bootstrap/serverless.ts --stage shared",
+    "bootstrap:remove": "serverless remove --config infra/ci-bootstrap/serverless.ts --stage shared",
     "remove:dev": "serverless remove --stage dev",
     "typecheck": "tsc --noEmit",
     "test": "jest",

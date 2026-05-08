@@ -50,16 +50,36 @@ npm test
 
 ## npm Scripts
 
-| Script                | Description                  |
-| --------------------- | ---------------------------- |
-| `npm test`            | Jest suite                   |
-| `npm run test:watch`  | Jest in watch mode           |
-| `npm run typecheck`   | `tsc --noEmit` (strict mode) |
-| `npm run deploy:dev`  | Deploy with `dev` stage      |
-| `npm run deploy:prod` | Deploy with `prod` stage     |
-| `npm run remove:dev`  | Remove `dev` stage stack     |
+| Script                     | Description                                                        |
+| -------------------------- | ------------------------------------------------------------------ |
+| `npm test`                 | Jest suite                                                         |
+| `npm run test:watch`       | Jest in watch mode                                                 |
+| `npm run typecheck`        | `tsc --noEmit` (strict mode)                                       |
+| `npm run deploy:dev`       | Deploy with `dev` stage                                            |
+| `npm run deploy:prod`      | Deploy with `prod` stage                                           |
+| `npm run remove:dev`       | Remove `dev` stage stack                                           |
+| `npm run bootstrap:deploy` | Deploy CI bootstrap stack (OIDC + GitHub deploy IAM roles) once    |
+| `npm run bootstrap:remove` | Remove CI bootstrap stack (breaks GitHub OIDC deploy until re-run) |
 
 Deployment provisions Lambdas (Node 20, **arm64**), HTTP API, DynamoDB, and secrets as defined in `serverless.ts` and `serverless/resources/`. After deployment, use the **HTTP API** URL emitted by CloudFormation / Serverless output as the base URL for requests.
+
+---
+
+## CI/CD bootstrap (one-time)
+
+GitHub Actions deploys to AWS using **OIDC** (no long-lived AWS keys in the repo). The OIDC provider and the IAM roles that `serverless deploy` assumes are defined as **IaC** in a separate Serverless service so CI identity is versioned and reproducible:
+
+- Stack config: [`infra/ci-bootstrap/serverless.ts`](infra/ci-bootstrap/serverless.ts)
+- Detailed steps: [`infra/ci-bootstrap/README.md`](infra/ci-bootstrap/README.md)
+
+**Summary**
+
+1. If you previously created `token.actions.githubusercontent.com` or a GitHub deploy role manually in IAM, **delete those** so this stack can own them (avoids `AlreadyExists`).
+2. From the repo root, with admin-level AWS credentials: `npm run bootstrap:deploy`.
+3. Copy stack output **`DevRoleArn`** into GitHub repository secret **`AWS_GITHUB_ACTIONS_ROLE_ARN`** (used by [`.github/workflows/deploy-dev.yml`](.github/workflows/deploy-dev.yml)). Keep **`ProdRoleArn`** for a future prod workflow.
+4. Ensure GitHub repository secrets **`SERVERLESS_ACCESS_KEY`** (Serverless Framework v4) and environment **`dev`** protection rules match your trust policy (`environment:dev`).
+
+The **dev** workflow deploys `--stage dev` on pushes to `main`. A **prod** workflow can reuse the same pattern with GitHub environment `prod` and the **`ProdRoleArn`** output.
 
 ---
 
@@ -111,6 +131,7 @@ Importable collection: [`postman/ticketing-api.postman_collection.json`](postman
 | `serverless.ts`         | Main Serverless configuration                           |
 | `serverless/functions/` | Registration for each Lambda (path, method, authorizer) |
 | `serverless/resources/` | CloudFormation (DynamoDB, secrets)                      |
+| `infra/ci-bootstrap/`   | CI-only Serverless stack (GitHub OIDC + deploy roles)   |
 | `src/functions/`        | HTTP handlers (thin; delegate to services)              |
 | `src/services/`         | Business rules                                          |
 | `src/repositories/`     | Data access (DynamoDB)                                  |

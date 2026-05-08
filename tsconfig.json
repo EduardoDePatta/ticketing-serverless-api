@@ -12,6 +12,6 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "serverless.ts", "tests/**/*.ts"],
+  "include": ["src/**/*.ts", "serverless.ts", "infra/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", ".serverless", "dist"]
 }
